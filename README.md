@@ -1,4 +1,4 @@
-# 🧥 HouseWith
+# 🏠‍👩‍👧‍👦 HouseWith
 
 > 가족 소통 도움 앱 (SpringBoot & React 팀 프로젝트)
 
