@@ -1,0 +1,82 @@
+.qna-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.qna-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  background-color: var(--card-bg-color);
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.current-week {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.week-nav-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.qna-settings {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--card-bg-color);
+  padding: 15px 20px;
+  border-radius: 15px;
+  box-shadow: var(--shadow-sm);
+  font-weight: 600;
+}
+
+.toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.toggle-switch input { display: none; }
+.toggle-switch .slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--border-color); transition: .4s; border-radius: 34px;
+}
+.toggle-switch .slider:before {
+  position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px;
+  background-color: white; transition: .4s; border-radius: 50%;
+}
+.toggle-switch input:checked + .slider { background-color: var(--accent-color); }
+.toggle-switch input:checked + .slider:before { transform: translateX(22px); }
+
+.question-box {
+  background-color: #E6F0E7;
+  padding: 20px; border-radius: 15px;
+  border-left: 5px solid #8EB790;
+  font-size: 1.125rem; font-weight: 600; line-height: 1.6;
+}
+
+.locked-view, .disabled-view {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  background-color: var(--card-bg-color); padding: 30px; border-radius: 20px;
+  box-shadow: var(--shadow-sm); gap: 10px;
+}
+
+.lock-icon { font-size: 3rem; margin-bottom: 10px; }
+.locked-view h3 { color: var(--text-primary); font-weight: 700; }
+.locked-view p, .disabled-view p { color: var(--text-secondary); line-height: 1.5; }
+
+.my-answer-input { width: 100%; margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+.my-answer-input input {
+  width: 100%; padding: 12px; border: 2px solid var(--border-color);
+  border-radius: 10px; font-size: 1rem;
+}
+.my-answer-input input:focus { outline: none; border-color: var(--accent-color); }
+.submit-btn {
+  background-color: var(--accent-color); color: white; border: none;
+  padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer;
+}

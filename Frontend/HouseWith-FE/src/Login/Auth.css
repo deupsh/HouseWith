@@ -1,0 +1,52 @@
+/* 로그인 & 계정 찾기 공통 스타일 (Auth.css) */
+
+.auth-container {
+  display: flex; flex-direction: column; justify-content: center;
+  min-height: 100vh; width: 100%; max-width: 480px; margin: 0 auto; 
+  padding: 40px 25px; background-color: var(--bg-color); 
+}
+
+.top-section { text-align: center; margin-bottom: 2.5rem; }
+.icon-wrapper { background-color: #A3C9A8; width: 80px; height: 80px; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 1.5rem; box-shadow: var(--shadow-md); }
+.layout-icon { width: 40px; height: 40px; color: #FFFFFF; }
+.layout-title { font-size: 2.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; }
+.layout-description { font-size: 1.05rem; color: var(--text-secondary); font-weight: 500; }
+
+.auth-form {
+  background-color: var(--card-bg-color);
+  padding: 30px 20px; 
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+/* 계정 찾기 화면 전용 (탭 때문에 위쪽 패딩을 없앰) */
+.auth-form.find-form { padding-top: 0; overflow: hidden; }
+
+/* 폼 공통 입력 스타일 */
+.form-field { margin-bottom: 0.5rem; }
+.form-field label { display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary); font-size: 0.95rem; }
+.input-with-icon { position: relative; }
+.input-with-icon input { width: 100%; padding: 15px 15px 15px 3.5rem; border: 2px solid var(--border-color); border-radius: 12px; font-size: 1rem; transition: border-color 0.2s ease; }
+.input-with-icon input:focus { outline: none; border-color: #8EB790; }
+.input-icon { position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); width: 1.3rem; height: 1.3rem; color: var(--icon-muted); }
+
+.main-button { 
+  margin-top: 10px; width: 60%; padding: 16px; background-color: var(--accent-color); 
+  color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700;
+  cursor: pointer; transition: 0.2s; display: block; margin: 20px auto 0;}
+.main-button:hover { background-color: var(--accent-hover); }
+
+.bottom-links { text-align: center; font-size: 0.95rem; color: var(--text-secondary); }
+.accent-link { color: var(--accent-color); text-decoration: none; font-weight: 700; }
+.signup-text { margin-top: 15px; font-weight: 500; }
+
+/* ================================================= */
+/* 아래부터는 계정 찾기(Find.jsx) 화면에만 쓰이는 탭 스타일 */
+.tabs { display: flex; margin: 0 -20px 20px -20px; border-bottom: 2px solid var(--border-color); }
+.tab { flex: 1; padding: 15px 0; background: none; border: none; font-size: 1.1rem; font-weight: 700; color: var(--icon-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s ease; }
+.tab.active-tab { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+.tab-description { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.5; word-break: keep-all; }
+.find-links { display: flex; justify-content: center; align-items: center; gap: 15px; }
+.divider { color: var(--border-color); }
