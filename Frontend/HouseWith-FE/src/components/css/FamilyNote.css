@@ -1,0 +1,209 @@
+.section-header { margin-bottom: 15px; }
+.section-header h2 { margin-bottom: 5px; font-size: 1.3rem; }
+.subtitle { font-size: 0.9rem; color: var(--text-secondary); }
+
+.note-cards-container {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto; 
+  padding-bottom: 15px; /* 그림자가 안 잘리게 패딩 증가 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+.note-cards-container::-webkit-scrollbar {height: 6px;}
+.note-cards-container::-webkit-scrollbar-track {background: transparent; /* 배경 투명 */}
+.note-cards-container::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 10px;
+}
+.note-cards-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--icon-muted);
+}
+
+.note-card {
+  min-width: 160px;
+  max-width: 180px;
+  background-color: var(--card-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 20px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0; 
+}
+
+/* 내 카드 강조 */
+.note-card.current-user {
+  border: 2px solid var(--accent-color);
+  background-color: #FFF9F7;
+}
+
+.alert-badge {
+  position: absolute;
+  top: -10px;
+  background-color: #FFF3CD;
+  color: #856404;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 12px;
+  border: 1px solid #FFE69C;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  z-index: 10;
+}
+
+.avatar-large {
+  font-size: 3rem;
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+
+.member-name { font-size: 1.1rem; color: var(--text-primary); margin-top: 22px;}
+.time-text { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px; }
+
+/* 메모 말풍선 */
+.note-bubble {
+  background-color: #F5F1EC;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  padding: 12px;
+  border-radius: 12px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  word-break: keep-all; /* 단어 단위로 줄바꿈 (가독성 향상) */
+}
+
+/* 말풍선 위쪽 꼬리 */
+.note-bubble::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #F5F1EC;
+}
+
+/* ================= 오늘의 한줄 (FamilyNote) 스타일 ================= */
+.note-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #333;
+}
+
+.section-header .subtitle {
+  margin: 5px 0 0 0;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.note-cards-container {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto; /* 멤버가 많으면 가로 스크롤 */
+  padding-bottom: 10px;
+}
+
+/* 개별 카드 */
+.note-card {
+  flex: 0 0 calc(25% - 9px); /* 4개 기준 꽉 차게 */
+  min-width: 140px;
+  background-color: var(--card-bg-color, #fff);
+  border: 1.5px solid #eaeaea;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+/* 내 슬롯(엄마) 호버 시 살짝 떠오르는 효과 */
+.note-card.current-user:hover {
+  border-color: #7A9D8C;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(122, 157, 140, 0.15);
+}
+
+.avatar-large {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.member-name {
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* 말풍선 공통 스타일 */
+.note-bubble {
+  background-color: #F4F8F6;
+  color: #444;
+  font-size: 0.85rem;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+
+/* 🌟 [7_1] 메모가 없을 때 (또는 24시간 지났을 때) */
+.note-bubble.empty-bubble {
+  background-color: #f5f5f5;
+  color: #aaa;
+  border: 1px dashed #ccc;
+}
+.note-card.current-user .note-bubble.empty-bubble {
+  color: #7A9D8C; /* 내 슬롯은 유도하는 텍스트 색상 */
+  font-weight: 600;
+}
+
+/* 🌟 [7_2] 7일 이상 미접속 넛지 말풍선 */
+.note-bubble.nudge-bubble {
+  background-color: #FFF3F0; /* 옅은 붉은빛 경고 배경 */
+  color: #D9534F; /* 붉은 글씨 */
+  border: 1px solid #F5D3CE;
+}
+.note-bubble.nudge-bubble strong {
+  font-weight: 800;
+}
+
+/* 내 슬롯 뱃지 */
+.alert-badge.my-badge {
+  position: absolute;
+  top: -10px;
+  background-color: #7A9D8C;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 한줄 입력 모달 전용 높이 조절 */
+.note-modal {
+  max-width: 320px; /* 캘린더 모달보다 살짝 작게 */
+}
+
+.note-card.current-user {
+  border: 2px solid #FF6B6B; /* 붉은색(코랄) 테두리 */
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.08); /* 살짝 붉은빛 그림자 */
+}

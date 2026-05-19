@@ -50,3 +50,43 @@
 .tab-description { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.5; word-break: keep-all; }
 .find-links { display: flex; justify-content: center; align-items: center; gap: 15px; }
 .divider { color: var(--border-color); }
+
+/* ==========================================================================
+   전화번호 3분할 입력칸 전용 스타일
+   ========================================================================== */
+   
+.phone-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.phone-input {
+  flex: 1;
+  min-width: 0;
+  padding: 15px 0;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 1rem;
+  text-align: center;
+  background-color: var(--card-bg-color);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+}
+
+.phone-input:focus {
+  outline: none;
+  border-color: #8EB790;
+}
+
+.phone-input:disabled {
+  background-color: #F8F7F4;
+  color: #888;
+  border-color: #EEE;
+}
+
+.phone-separator {
+  color: var(--border-color);
+  font-weight: bold;
+}
