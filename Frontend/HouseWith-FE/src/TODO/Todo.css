@@ -33,19 +33,189 @@
 .todo-list-section h3 { font-size: 1.125rem; margin-bottom: 10px; color: var(--text-secondary); }
 
 .todo-item {
-  background-color: var(--card-bg-color); padding: 15px; border-radius: 12px;
-  display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
-  box-shadow: var(--shadow-sm);
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 15px 10px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #F2F2F2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.todo-item:last-child {
+  border-bottom: none;
 }
 
 .todo-check { width: 1.25rem; height: 1.25rem; accent-color: var(--accent-color); }
-.todo-info { display: flex; flex-direction: column; flex: 1; }
+
+/* 상단 날짜 헤더 스타일 */
+.todo-header {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.todo-header h2 {
+  margin: 0 0 5px 0;
+  font-size: 1.5rem;
+  color: #222;
+  font-weight: 800;
+}
+.date-text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #7A9D8C;
+  font-weight: 700;
+}
+
+/*섹션 그룹화*/
+.todo-list-section {
+  background-color: #FFFFFF; /* 흰색 배경으로 그룹화 */
+  border-radius: 24px;       /* 둥글둥글하고 부드러운 곡선 */
+  padding: 20px 15px;
+  margin-bottom: 25px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04); /* 바깥쪽에 은은한 그림자 */
+  border: 1px solid #F5F5F5;
+}
+
+/* 섹션 제목 (진행 중(3), 완료됨(1)) */
+.todo-list-section h3 {
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #666;
+  margin: 0 0 15px 0;
+}
+
+.todo-info { 
+  display: flex; 
+  flex-direction: column; 
+  flex: 1; 
+  text-align: left;
+  padding-left: 15px;
+}
 .todo-info .title { font-size: 1.125rem; font-weight: 600; color: var(--text-primary); }
 .todo-info .cycle { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
 .todo-assignee { display: flex; align-items: center; gap: 5px; font-weight: 600; font-size: 0.9rem; }
 .avatar-mini { font-size: 1.2rem; }
 .todo-actions button { background: none; border: none; font-size: 1.125rem; cursor: pointer; margin-left: 5px; }
 
-.todo-item.completed { opacity: 0.6; }
-.todo-item.completed .title { text-decoration: line-through; }
+.todo-item.completed {
+  opacity: 0.85;
+  background-color: #F4F8F6;
+  border-radius: 12px;
+  border-bottom: none;
+  margin-bottom: 8px;
+}
+
+.todo-item.completed .title {
+  text-decoration: line-through;
+  color: #666;
+}
 .check-icon { color: var(--accent-color); font-size: 1.25rem; font-weight: 900; }
+
+/* 리스트가 비어있을 때 메시지 */
+.empty-msg {
+  font-size: 0.9rem;
+  color: #999;
+  text-align: center;
+  padding: 20px 0;
+  background-color: rgba(0,0,0,0.02);
+  border-radius: 12px;
+}
+
+/* 체크박스 디자인 (기존 라디오 버튼에서 체크박스로 변경) */
+.todo-check {
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  accent-color: #7A9D8C; /* 앱 메인 컬러 */
+}
+
+/* 완료된 항목 아이콘 */
+.todo-item.completed {
+  opacity: 0.6;
+  background-color: #f9f9f9;
+}
+.todo-item.completed .title {
+  text-decoration: line-through;
+  color: #888;
+}
+
+/* 모달 애니메이션 부드럽게 */
+.fade-in {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Todo 모달 전용 스타일 (캘린더 폼 스타일 재활용) */
+.todo-modal {
+  max-width: 400px; /* 너무 넓지 않게 조절 */
+}
+
+/* 반복 주기 버튼 그룹 (매일/매주/매월) */
+.cycle-btn-group {
+  display: flex;
+  background-color: #F4F8F6;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+}
+.cycle-btn {
+  flex: 1;
+  padding: 8px 0;
+  font-size: 0.9rem;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.cycle-btn.selected {
+  background-color: white;
+  color: #7A9D8C;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* 매월 날짜 선택 셀렉트 박스 */
+.date-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 16px;
+  font-size: 1rem;
+  color: #333;
+  outline: none;
+  background-color: #FAFAFA;
+  cursor: pointer;
+}
+.date-select:focus {
+  border-color: #7A9D8C;
+  background-color: #fff;
+}
+
+/* ================= 커스텀 삭제 확인 모달 스타일 ================= */
+.confirm-modal {
+  max-width: 320px;
+  padding: 30px 25px;
+  text-align: center;
+}
+
+.confirm-title {
+  font-size: 1.25rem;
+  color: #333;
+  margin: 0 0 10px 0;
+  font-weight: 800;
+}
+
+.confirm-desc {
+  font-size: 0.95rem;
+  color: #666;
+  margin: 0 0 15px 0;
+  line-height: 1.5;
+  word-break: keep-all;
+}

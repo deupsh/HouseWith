@@ -5,7 +5,7 @@ const FamilyNote = () => {
   // 실제 현재 시간 (테스트 시점)
   const now = new Date();
 
-  // 🌟 더미 데이터: 접속 시간과 메모 작성 시간 추가
+  // 더미 데이터: 접속 시간과 메모 작성 시간 추가
   const [familyNotes, setFamilyNotes] = useState([
     { id: 1, name: '나(엄마)', nickname: '엄마', avatar: '👩', note: '냉장고에 과일 깎아뒀으니 다들 챙겨 먹어~ 🍎', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 5).toISOString(), isCurrentUser: true },
     // 아빠: 8일 전 접속 (7일 이상 미접속 조건 충족)
@@ -19,7 +19,7 @@ const FamilyNote = () => {
   const [newNote, setNewNote] = useState('');
   const [error, setError] = useState('');
 
-  // 🌟 [7_2] 7일 이상 미접속 여부 체크 함수
+  // 7일 이상 미접속 여부 체크 함수
   const isInactiveFor7Days = (lastLoginIso) => {
     const loginDate = new Date(lastLoginIso);
     const diffTime = Math.abs(now - loginDate);
@@ -73,7 +73,6 @@ const FamilyNote = () => {
           const isInactive = isInactiveFor7Days(member.lastLogin);
           const showNote = isNoteValid(member.noteUpdatedAt) && member.note;
           
-          // 🌟 추가된 로직: 내 계정도 아니고, 메모도 없고, 미접속 상태도 아닌 텅 빈 다른 사람
           const isOtherEmpty = !member.isCurrentUser && !showNote && !isInactive;
 
           return (

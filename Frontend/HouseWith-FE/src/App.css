@@ -127,15 +127,16 @@ h2 {
 /* ================= [공통 UI] 버튼 스타일 ================= */
 .btn-group {
   display: flex; 
-  gap: 8px; 
-  margin-top: 25px; /* 필요에 따라 컴포넌트에서 덮어씌워도 됩니다 */
+  gap: 10px; 
+  margin-top: 25px; 
   width: 100%;
 }
 
+/* 🌟 버튼 비율 및 곡률 최적화 */
 .btn {
   flex: 1;
-  padding: 9px 0;
-  border-radius: 20px;
+  padding: 13px 0;  /* 빵빵하면서도 과하지 않은 패딩 */
+  border-radius: 16px; 
   font-weight: 700; 
   font-size: 1.05rem;
   cursor: pointer; 
@@ -146,13 +147,15 @@ h2 {
   align-items: center;
 }
 
-/* 메인 강조 버튼 (저장, 확인 등) */
+/* 메인 강조 버튼 (수정하기, 저장 등) */
 .btn-primary { 
   background-color: #7A9D8C; 
   color: white; 
+  box-shadow: 0 4px 6px rgba(122, 157, 140, 0.15); /* 은은한 초록빛 그림자 */
 }
 .btn-primary:hover { 
   background-color: #668777; 
+  transform: translateY(-1px); /* 살짝 떠오르는 효과 */
 }
 
 /* 보조 버튼 (취소, 닫기 등) */
@@ -166,9 +169,12 @@ h2 {
 
 /* 경고/삭제 버튼 */
 .btn-danger { 
-  background-color: #FF6B6B; 
-  color: white; 
+  background-color: #ff4c4c; /* 연한 붉은 배경 */
+  color: white;            /* 붉은 글씨 */
+  border: 1.5px solid #FFE5E5; /* 아주 연한 붉은 테두리 */
 }
 .btn-danger:hover { 
-  background-color: #FA5252; 
+  background-color: #ca2626; 
+  border-color: #FF6B6B;
+  transform: translateY(-1px);
 }
