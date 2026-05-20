@@ -1,0 +1,157 @@
+.analysis-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 30px;
+}
+
+.analysis-header { margin-bottom: 10px; }
+.analysis-header h2 { font-size: 1.4rem; font-weight: 800; color: #333; margin: 0 0 5px 0; }
+.analysis-date { font-size: 0.95rem; color: #777; font-weight: 600; margin: 0; }
+
+/* AI 분석 카드 섹션 */
+.ai-analysis-section { display: flex; flex-direction: column; gap: 12px; }
+.ai-card { display: flex; gap: 15px; padding: 20px; border-radius: 16px; align-items: flex-start; }
+.ai-card h4 { margin: 0 0 6px 0; font-size: 1rem; font-weight: 800; color: #333; }
+.ai-card p { margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5; word-break: keep-all; }
+
+.ai-icon-wrapper {
+  background: white; width: 36px; height: 36px; border-radius: 50%;
+  display: flex; justify-content: center; align-items: center;
+  flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.ai-icon { font-size: 1.1rem; }
+
+.success-card { background-color: #F4F8F6; border: 1px solid #E6F0E7; }
+.warning-card { background-color: #FFF2F2; border: 1px solid #FFE5E5; }
+.tip-card { background-color: #FAFAFA; border: 1px solid #EEEEEE; }
+
+/* 공통 차트/통계 카드 */
+.chart-card {
+  background-color: #FFFFFF; border-radius: 20px; padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03); border: 1px solid #F5F5F5;
+}
+.chart-card h3 { margin: 0 0 20px 0; font-size: 1.1rem; padding-bottom: 30px; font-weight: 800; color: #444; }
+
+/* ======================================================= */
+/* 🌟 인터랙티브 막대 그래프 전용 스타일 */
+/* ======================================================= */
+.bar-chart-container { 
+  display: flex; height: 200px; gap: 10px; position: relative; 
+  border-bottom: 2px dashed #EEE; padding-bottom: 10px; 
+}
+.y-axis { 
+  display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; 
+  color: #999; font-size: 0.75rem; font-weight: 600; padding-right: 10px; border-right: 1px solid #EEEEEE; width: 30px; 
+}
+.chart-area { flex: 1; display: flex; justify-content: space-around; align-items: flex-end; }
+
+.bar-column { 
+  display: flex; flex-direction: column; align-items: center; height: 100%; 
+  justify-content: flex-end; gap: 10px; width: 50px; cursor: pointer; 
+}
+
+.bar { 
+  width: 26px; border-radius: 6px 6px 0 0; position: relative; 
+  transform-origin: bottom center; /* 아래쪽을 기준으로 커지도록 설정 */
+  transition: height 1s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+              filter 0.3s, opacity 0.3s; 
+}
+
+/* 🌟 마우스가 올라간 막대의 변화 (통통해지고 솟아오름) */
+.bar-column.hovered .bar {
+  transform: scaleX(1.3) scaleY(1.05); /* 옆으로 살짝 넓어지고, 위로 솟음 */
+  filter: drop-shadow(0 -4px 8px rgba(0,0,0,0.15));
+}
+
+/* 🌟 선택되지 않은 나머지 막대들은 흐려짐 */
+.bar-column.dimmed .bar {
+  opacity: 0.4;
+}
+
+.bar-tooltip { 
+  position: absolute; 
+  top: -22px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  font-size: 0.75rem; /* 가독성을 위해 글씨 크기를 아주 살짝 키웠습니다 */
+  font-weight: 700; 
+  color: #666; 
+  opacity: 0; 
+  transition: all 0.3s ease; 
+  pointer-events: none; 
+  white-space: nowrap; 
+}
+
+/* 툴팁 강조 효과 */
+.bar-column.hovered .bar-tooltip { 
+  opacity: 1; 
+  transform: translateX(-50%) translateY(-6px) scale(1.1); /* 위로 뜨면서 글씨가 커짐 */
+  color: #333;
+}
+
+/* 🌟 하단 이름 라벨 강조 효과 */
+.bar-label { 
+  font-size: 0.85rem; font-weight: 700; color: #555; 
+  transition: color 0.3s, transform 0.3s;
+}
+.bar-column.hovered .bar-label {
+  color: #333;
+  transform: scale(1.1);
+}
+.bar-column.dimmed .bar-label {
+  opacity: 0.6;
+}
+
+/* 통계 수치 그리드 */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stat-card { background-color: #FFFFFF; border-radius: 16px; 
+    padding: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); 
+    border: 1px solid #F5F5F5; text-align: center; }
+.stat-icon { display: inline-block; background-color: #F4F8F6; 
+    padding: 6px; border-radius: 8px; font-size: 1.1rem; margin-bottom: 10px; }
+.stat-title { font-size: 0.85rem; color: #777; font-weight: 600; margin: 0 0 5px 0; }
+.stat-value { font-size: 1.4rem; font-weight: 800; color: #333; margin: 0; }
+.stat-value span { font-size: 0.9rem; margin-left: 2px; }
+
+/* 주간 활동 패턴 */
+.pattern-bars { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+.pattern-row { display: flex; align-items: center; gap: 15px; }
+.pattern-label { width: 35px; font-size: 0.9rem; font-weight: 700; color: #555; }
+.pattern-track { flex: 1; height: 12px; background-color: #F0F0F0; 
+    border-radius: 10px; overflow: hidden; }
+.pattern-fill { height: 100%; border-radius: 10px; 
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+.pattern-percent { font-size: 0.9rem; font-weight: 800; color: #333; 
+    width: 35px; text-align: right; }
+.pattern-desc { font-size: 0.85rem; color: #777; line-height: 1.5; 
+    background-color: #FAFAFA; padding: 12px; 
+    border-radius: 10px; margin: 0; word-break: keep-all; }
+
+/* 인터랙티브 SVG 원형 차트 전용 스타일 */
+.pie-chart-wrapper { display: flex; align-items: center; gap: 30px; 
+    justify-content: center; padding: 10px 0; }
+.interactive-pie { width: 170px; height: 170px; transform: scale(0); 
+    transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); overflow: visible; }
+.interactive-pie.animate { transform: scale(1); }
+
+.pie-slice-group { cursor: pointer; transform-origin: 100px 100px; 
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.pie-path { transition: filter 0.3s; stroke: #ffffff; stroke-width: 1.5px; }
+.pie-slice-group.hovered { transform: scale(1.08); }
+.pie-slice-group.hovered .pie-path { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); }
+
+.pie-label-text { font-size: 11px; font-weight: 800; fill: #ffffff; 
+    text-anchor: middle; pointer-events: none; text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3); }
+.pie-label-percent { font-size: 10px; font-weight: 700; fill: #ffffff; 
+    text-anchor: middle; pointer-events: none; 
+    text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3); }
+
+.pie-legend { display: flex; flex-direction: column; gap: 12px; }
+.legend-item { display: flex; align-items: center; gap: 8px; 
+    padding: 4px 8px; border-radius: 8px; transition: background-color 0.2s; cursor: pointer; }
+.legend-item.hovered { background-color: #F4F8F6; }
+.legend-color { width: 12px; height: 12px; border-radius: 4px; }
+.legend-name { font-size: 0.9rem; color: #555; font-weight: 600; width: 35px; }
+.legend-percent { font-size: 0.9rem; color: #333; font-weight: 800; }

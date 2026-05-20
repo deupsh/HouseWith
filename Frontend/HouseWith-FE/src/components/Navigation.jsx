@@ -67,7 +67,7 @@ const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
         </NavLink>
         <NavLink to="/qna" className="nav-item">
           <MessageCircle size={20} />
-          <span>질의응답</span>
+          <span>주간질문</span>
           <span className="notification-dot"></span>
         </NavLink>
         <NavLink to="/analysis" className="nav-item">
