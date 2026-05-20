@@ -1,18 +1,44 @@
 import React, { useState } from 'react';
+import axios from 'axios'; // 🌟 1. 백엔드 통신을 위해 axios 추가
 import { Home, Mail, Lock } from 'lucide-react';
 import './Auth.css';
 
-// 1. App.jsx에서 넘겨준 onLogin 리모컨을 받아옵니다.
 const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('example@housewith.com');
-  const [password, setPassword] = useState('*********');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // 2. 로그인 버튼을 누를 때 실행될 함수
-  const handleLoginSubmit = (e) => {
-    e.preventDefault(); // 새로고침 방지
-    // 나중에는 여기서 백엔드(Spring Boot)로 이메일/비밀번호를 보내서 검사해야 합니다.
-    // 지금은 무조건 로그인 성공으로 처리합니다!
-    onLogin(); 
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault(); 
+    setErrorMessage('');
+
+    try {
+      const response = await axios.post('/api/login', {
+        email: email,
+        password: password
+      });
+
+      // 로그인 성공 시 백엔드가 준 Token을 찾아 저장.
+      const token = response.headers['authorization'] || response.data.token || response.data.accessToken;
+      
+      if (token) {
+        // 내 브라우저 금고(로컬 스토리지)에 토큰 저장
+        // 아까 Todo.jsx에서 getAuthHeaders()로 이 토큰을 꺼내 썼었죠!
+        localStorage.setItem('accessToken', token.replace('Bearer ', '')); 
+      }
+
+      // 3. 메인 화면으로 이동
+      onLogin(); 
+
+    } catch (error) {
+      // 로그인 실패 시 (비밀번호 틀림, 없는 아이디 등)
+      console.error("로그인 실패:", error);
+      if (error.response && error.response.status === 401) {
+        setErrorMessage('이메일 또는 비밀번호가 일치하지 않습니다.');
+      } else {
+        setErrorMessage('서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
+      }
+    }
   };
 
   return (
@@ -25,22 +51,42 @@ const Login = ({ onLogin }) => {
         <p className="layout-description">가족과 함께하는 따뜻한 공간</p>
       </div>
       
-      {/* 3. 폼이 제출될 때 handleLoginSubmit 함수가 실행되도록 연결합니다. */}
       <form className="auth-form" onSubmit={handleLoginSubmit}>
         <div className="form-field">
           <label htmlFor="email">이메일</label>
           <div className="input-with-icon">
             <Mail className="input-icon" />
-            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input 
+              type="email" 
+              id="email" 
+              placeholder="이메일을 입력해주세요"
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required
+            />
           </div>
         </div>
         <div className="form-field">
           <label htmlFor="password">비밀번호</label>
           <div className="input-with-icon password-input">
             <Lock className="input-icon" />
-            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input 
+              type="password" 
+              id="password" 
+              placeholder="비밀번호를 입력해주세요"
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required
+            />
           </div>
         </div>
+
+        {errorMessage && (
+          <div style={{ color: '#FF6B6B', fontSize: '0.85rem', textAlign: 'center', marginTop: '-5px', marginBottom: '10px', fontWeight: 'bold' }}>
+            {errorMessage}
+          </div>
+        )}
+
         <button type="submit" className="main-button login-button">로그인</button>
       </form>
       
