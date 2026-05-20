@@ -56,7 +56,7 @@ public class CommunicationService {
     // 오늘의 가족 기분 조회
     public List<MoodResponse> getTodayFamilyMoods(Long userId) {
         LocalDateTime twentyFourHoursAgo = LocalDateTime.now().minusHours(24);
-        List<FamilyMood> recentMoods = familyMoodRepository.findByUser_IdAndCreatedAtAfter(userId, twentyFourHoursAgo);
+        List<FamilyMood> recentMoods = familyMoodRepository.findByUserIdAndCreatedAtAfter(userId, twentyFourHoursAgo);
 
         // 가족 구성원 데이터를 단 한 번의 쿼리로 가져와 Map으로 매핑
         List<Profile> familyProfiles = profileRepository.findByUser_Id(userId);
