@@ -219,3 +219,26 @@
   line-height: 1.5;
   word-break: keep-all;
 }
+
+.todo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.date-selector {
+  border: 1px solid #EAEAEA;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background-color: #FAFAFA;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.date-selector:focus {
+  border-color: #7A9D8C;
+  background-color: #FFFFFF;
+}

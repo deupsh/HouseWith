@@ -3,7 +3,7 @@ import './Account.css';
 import ProfileModal from '../components/ProfileModal';
 import { iconList, colorList } from '../constants/profileOptions';
 
-//더미 데이터
+// 더미 데이터
 const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
   const [profiles, setProfiles] = useState([
     { profile_id: 1, nickname: '엄마', profile_type: 0, emoji_id: 0, background_id: 0, custom_profile_image: null },
@@ -13,7 +13,8 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-const handleModalSubmit = (formData) => {
+  
+  const handleModalSubmit = (formData) => {
     const newMember = {
       profile_id: Date.now(),
       ...formData
@@ -45,7 +46,13 @@ const handleModalSubmit = (formData) => {
               {profile.profile_type === 1 ? (
                 <img src={profile.custom_profile_image} alt={profile.nickname} className="avatar-img" />
               ) : (
-                <span className="avatar-emoji">{iconList[profile.emoji_id]}</span>
+                // 🌟 수정: 텍스트 이모지(span) 대신 커스텀 아이콘 이미지(img) 렌더링
+                <img 
+                  src={iconList[profile.emoji_id]} 
+                  alt={`avatar-${profile.emoji_id}`} 
+                  className="avatar-img" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
+                />
               )}
             </div>
             <span className="profile-name">{profile.nickname}</span>

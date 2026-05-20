@@ -153,7 +153,11 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
                     <div className="selection-grid">
                       {iconList.map((icon, index) => (
                         <div key={index} className={`icon-item ${emojiId === index ? 'active' : ''}`} onClick={() => setEmojiId(index)}>
-                          {icon}
+                          <img 
+                            src={icon} 
+                            alt={`icon-${index}`} 
+                            style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '50%' }} 
+                          />
                         </div>
                       ))}
                     </div>
@@ -194,18 +198,22 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
           <div className="preview-section">
             <p>미리보기</p>
             <div className="preview-card">
-               <div className="avatar-box" style={{ backgroundColor: activeTab === 0 ? colorList[backgroundId] : 'transparent' }}>
-                  {activeTab === 1 ? (
-                    customImage ? <img src={customImage} alt="preview" className="avatar-img" /> : <Camera color="#ccc"/>
-                  ) : (
-                    <span className="avatar-emoji">{iconList[emojiId]}</span>
-                  )}
-               </div>
-               <span className="profile-name">{nickname || '이름'}</span>
+              <div className="avatar-box" style={{ backgroundColor: activeTab === 0 ? colorList[backgroundId] : 'transparent' }}>
+                {activeTab === 1 ? (
+                  customImage ? <img src={customImage} alt="preview" className="avatar-img" /> : <Camera color="#ccc"/>
+                ) : (
+                  <img 
+                    src={iconList[emojiId]} 
+                    alt="preview-icon" 
+                    className="avatar-img" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
+                  />
+                )}
+              </div>
+              <span className="profile-name">{nickname || '이름'}</span>
             </div>
           </div>
         </div>
-
         <div className="modal-footer">
           <button className="btn-cancel" onClick={onClose}>취소</button>
           <button className="btn-add" onClick={handleSubmit}>

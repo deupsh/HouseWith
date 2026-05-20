@@ -1,41 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { iconMap } from '../constants/profileOptions';
 import './Todo.css';
 
-// 더미 데이터
-const MEMBERS = [
-  { name: '엄마', avatar: '👩' },
-  { name: '아빠', avatar: '👨' },
-  { name: '딸', avatar: '👧' },
-  { name: '아들', avatar: '👦' }
+const MOCK_MEMBERS = [
+  { slotId: 1, nickname: '엄마', profileEmoji: 1, profileBackground: 1, customProfileImage: null },
+  { slotId: 2, nickname: '아빠', profileEmoji: 2, profileBackground: 2, customProfileImage: null },
+  { slotId: 3, nickname: '딸', profileEmoji: 3, profileBackground: 3, customProfileImage: null },
+  { slotId: 4, nickname: '아들', profileEmoji: 4, profileBackground: 4, customProfileImage: null }
 ];
+
+const DUMMY_CHORES = [
+  { choreId: 1, title: '설거지', cycleType: 1, scheduledDate: null, isDone: false, participants: [MOCK_MEMBERS[0]] },
+  { choreId: 2, title: '분리수거', cycleType: 2, scheduledDate: 2, isDone: false, participants: [MOCK_MEMBERS[1]] },
+];
+
 const WEEK_DAYS = ['월', '화', '수', '목', '금', '토', '일'];
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('accessToken');
+  return { headers: { Authorization: `Bearer ${token}` } };
+};
+
 const Todo = () => {
-  const [todos, setTodos] = useState([
-    { id: 1, title: '설거지', cycleType: 'daily', cycleValue: '', assignees: ['엄마', '딸'], isCompleted: false },
-    { id: 2, title: '분리수거', cycleType: 'weekly', cycleValue: '수', assignees: ['아빠'], isCompleted: false },
-    { id: 3, title: '화장실 청소', cycleType: 'biweekly', cycleValue: '일', assignees: ['아들'], isCompleted: false },
-    { id: 4, title: '형광등 교체', cycleType: 'none', cycleValue: '', assignees: ['아빠'], isCompleted: true },
-  ]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [todos, setTodos] = useState(DUMMY_CHORES); // 더미 데이터로 초기화
+
+  // 데이터 불러오기
+  const fetchChores = async () => {
+    try {
+      const response = await axios.get(`/api/chores?date=${selectedDate}`, getAuthHeaders());
+      if (Array.isArray(response.data)) {
+        setTodos(response.data);
+      } else {
+        console.warn("데이터가 배열이 아닙니다. 빈 배열로 처리합니다.", response.data);
+        setTodos([]); 
+      }
+    } catch (error) {
+      console.error("데이터 조회 실패 (서버가 닫혀있을 수 있습니다):", error);
+      setTodos([]);
+    }
+  };
+
+  // 날짜가 바뀔 때마다 데이터 다시 로드
+  useEffect(() => {
+    fetchChores();
+  }, [selectedDate]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  
   const [title, setTitle] = useState('');
-  const [cycleType, setCycleType] = useState('none');
-  const [cycleValue, setCycleValue] = useState('');
-  const [selectedAssignees, setSelectedAssignees] = useState([]);
+  const [cycleType, setCycleType] = useState(0); 
+  const [scheduledDate, setScheduledDate] = useState(''); 
+  const [participantSlotIds, setParticipantSlotIds] = useState([]);
   const [error, setError] = useState('');
-
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [todoToDelete, setTodoToDelete] = useState(null);
 
-  const getAvatar = (name) => MEMBERS.find(m => m.name === name)?.avatar || '👤';
+  const getAvatar = (emojiId) => {
+    const imageSrc = iconMap[String(emojiId)] || iconMap['1']; 
+    
+    return (
+      <img 
+        src={imageSrc} 
+        alt={`profile-${emojiId}`} 
+        style={{ 
+          width: '24px', 
+          height: '24px', 
+          borderRadius: '50%', 
+          objectFit: 'cover',
+          verticalAlign: 'middle',
+          marginRight: '4px' 
+        }} 
+      />
+    );
+  };
 
-  const handleToggleComplete = (id) => {
-    setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo
-    ));
+  const handleToggleComplete = async (id) => {
+    try {
+      await axios.patch(`/api/chores/${id}/done`, {}, getAuthHeaders());
+      fetchChores(); // 서버 반영 후 목록 갱신
+    } catch (error) {
+      console.error("완료 처리 실패:", error);
+    }
   };
 
   const handleDeleteClick = (id) => {
@@ -44,121 +91,123 @@ const Todo = () => {
     setIsModalOpen(false);
   };
 
-  const confirmDelete = () => {
-    setTodos(prevTodos => prevTodos.filter(todo => todo.id !== todoToDelete));
-    setIsConfirmOpen(false);
-    setTodoToDelete(null);
+  const confirmDelete = async () => {
+    try {
+      await axios.delete(`/api/chores/${todoToDelete}`, getAuthHeaders());
+      fetchChores(); // 삭제 후 목록 갱신
+      setIsConfirmOpen(false);
+      setTodoToDelete(null);
+    } catch (error) {
+      console.error("삭제 실패:", error);
+    }
   };
 
   const handleOpenAdd = () => {
     setEditingId(null);
     setTitle('');
-    setCycleType('none');
-    setCycleValue('');
-    setSelectedAssignees([]);
+    setCycleType(0);
+    setScheduledDate('');
+    setParticipantSlotIds([]);
     setError('');
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (todo) => {
-    setEditingId(todo.id);
+    setEditingId(todo.choreId);
     setTitle(todo.title);
     setCycleType(todo.cycleType);
-    setCycleValue(todo.cycleValue);
-    setSelectedAssignees(todo.assignees);
+    setScheduledDate(todo.scheduledDate !== null ? todo.scheduledDate : '');
+    setParticipantSlotIds(todo.participants.map(p => p.slotId));
     setError('');
     setIsModalOpen(true);
   };
 
-  const handleAssigneeToggle = (name) => {
-    if (selectedAssignees.includes(name)) {
-      setSelectedAssignees(selectedAssignees.filter(a => a !== name));
+  const handleAssigneeToggle = (slotId) => {
+    if (participantSlotIds.includes(slotId)) {
+      setParticipantSlotIds(participantSlotIds.filter(id => id !== slotId));
     } else {
-      setSelectedAssignees([...selectedAssignees, name]);
+      setParticipantSlotIds([...participantSlotIds, slotId]);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (title.trim().length < 1 || title.trim().length > 20) {
       setError('제목은 1~20자 이내로 입력해주세요.');
       return;
     }
-    if (selectedAssignees.length === 0) {
+    if (participantSlotIds.length === 0) {
       setError('담당자를 1명 이상 선택해주세요.');
       return;
     }
-  
-    if ((cycleType === 'weekly' || cycleType === 'biweekly') && !cycleValue) {
-      setError('반복할 요일을 선택해주세요.');
-      return;
-    }
-    if (cycleType === 'monthly' && !cycleValue) {
-      setError('반복할 날짜를 선택해주세요.');
-      return;
-    }
 
-    const newTodo = {
-      id: editingId || Date.now(),
+    const requestPayload = {
       title: title.trim(),
-      cycleType,
-      cycleValue,
-      assignees: selectedAssignees,
-      isCompleted: false
+      cycleType: Number(cycleType),
+      scheduledDate: (cycleType === 0 || cycleType === 1) ? null : Number(scheduledDate),
+      participantSlotIds: participantSlotIds.map(Number)
     };
 
-    if (editingId) {
-      setTodos(todos.map(t => t.id === editingId ? { ...t, ...newTodo, isCompleted: t.isCompleted } : t));
-    } else {
-      setTodos([...todos, newTodo]);
+    try {
+      if (editingId) {
+        await axios.put(`/api/chores/${editingId}`, requestPayload, getAuthHeaders());
+      } else {
+        await axios.post('/api/chores', requestPayload, getAuthHeaders());
+      }
+      setIsModalOpen(false);
+      fetchChores(); // 저장 후 목록 갱신
+    } catch (error) {
+      console.error("집안일 저장 실패:", error);
+      setError('서버 통신 중 오류가 발생했습니다.');
     }
-
-    setIsModalOpen(false);
   };
 
   const getCycleText = (type, value) => {
-    if (type === 'none') return '일회성';
-    if (type === 'daily') return '매일';
-    if (type === 'weekly') return `매주 ${value}요일`;
-    if (type === 'biweekly') return `격주 ${value}요일`;
-    if (type === 'monthly') return `매월 ${value}일`;
+    if (type === 0) return '일회성';
+    if (type === 1) return '매일';
+    if (type === 2) return `매주 ${WEEK_DAYS[value]}요일`;
+    if (type === 3) return `격주 ${WEEK_DAYS[value]}요일`;
+    if (type === 4) return `매월 ${value}일`;
     return '';
   };
 
-  const inProgressTodos = todos.filter(t => !t.isCompleted);
-  const completedTodos = todos.filter(t => t.isCompleted);
-
-  const todayString = new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-  }).format(new Date());
+  const todoList = Array.isArray(todos) ? todos : [];
+  const inProgressTodos = todos.filter(t => !t.isDone);
+  const completedTodos = todos.filter(t => t.isDone);
 
   return (
     <div className="todo-page">
-
       <div className="todo-header">
         <h2>오늘의 집안일</h2>
-        <p className="date-text">{todayString}</p>
+        <input 
+          type="date" 
+          className="date-selector"
+          value={selectedDate} 
+          onChange={(e) => setSelectedDate(e.target.value)}
+        />
       </div>
 
       <div className="todo-list-section">
         <h3>진행 중 ({inProgressTodos.length})</h3>
         {inProgressTodos.length === 0 && <p className="empty-msg">진행 중인 집안일이 없습니다.</p>}
         {inProgressTodos.map(todo => (
-          <div key={todo.id} className="todo-item">
+          <div key={todo.choreId} className="todo-item">
             <input 
               type="checkbox" 
               className="todo-check" 
-              checked={todo.isCompleted}
-              onChange={() => handleToggleComplete(todo.id)}
+              checked={todo.isDone}
+              onChange={() => handleToggleComplete(todo.choreId)}
             />
             <div className="todo-info">
               <span className="title">{todo.title}</span>
-              <span className="cycle">{getCycleText(todo.cycleType, todo.cycleValue)}</span>
+              <span className="cycle">{getCycleText(todo.cycleType, todo.scheduledDate)}</span>
             </div>
             <div className="todo-assignee">
-              {todo.assignees.map(name => (
-                <span key={name} title={name} className="avatar-mini">{getAvatar(name)}</span>
+              {todo.participants.map(member => (
+                <span key={member.slotId} title={member.nickname} className="avatar-mini">
+                  {getAvatar(member.profileEmoji)}
+                </span>
               ))}
             </div>
             <div className="todo-actions">
@@ -172,24 +221,26 @@ const Todo = () => {
         <h3>완료됨 ({completedTodos.length})</h3>
         {completedTodos.length === 0 && <p className="empty-msg">완료된 집안일이 없습니다.</p>}
         {completedTodos.map(todo => (
-          <div key={todo.id} className="todo-item completed">
+          <div key={todo.choreId} className="todo-item completed">
             <input 
               type="checkbox" 
               className="todo-check" 
-              checked={todo.isCompleted}
-              onChange={() => handleToggleComplete(todo.id)}
+              checked={todo.isDone}
+              onChange={() => handleToggleComplete(todo.choreId)}
             />
             <div className="todo-info">
               <span className="title">{todo.title}</span>
-              <span className="cycle">{getCycleText(todo.cycleType, todo.cycleValue)}</span>
+              <span className="cycle">{getCycleText(todo.cycleType, todo.scheduledDate)}</span>
             </div>
             <div className="todo-assignee">
-              {todo.assignees.map(name => (
-                <span key={name} title={name} className="avatar-mini">{getAvatar(name)}</span>
+              {todo.participants.map(member => (
+                <span key={member.slotId} title={member.nickname} className="avatar-mini">
+                  {getAvatar(member.profileEmoji)}
+                </span>
               ))}
             </div>
             <div className="todo-actions">
-              <button onClick={() => handleDeleteClick(todo.id)}>🗑️</button>
+              <button onClick={() => handleDeleteClick(todo.choreId)}>🗑️</button>
             </div>
           </div>
         ))}
@@ -215,32 +266,35 @@ const Todo = () => {
                 <input type="text" placeholder="예: 거실 청소기 돌리기 (1~20자)" maxLength={20} value={title} onChange={e => setTitle(e.target.value)} autoFocus />
               </div>
 
+              {/* 🌟 0~4 숫자 인덱스로 매핑된 반복 주기 */}
               <div className="form-field">
                 <label>반복 주기</label>
                 <div className="cycle-btn-group">
-                  <button type="button" className={`cycle-btn ${cycleType === 'none' ? 'selected' : ''}`} onClick={() => { setCycleType('none'); setCycleValue(''); }}>없음</button>
-                  <button type="button" className={`cycle-btn ${cycleType === 'daily' ? 'selected' : ''}`} onClick={() => { setCycleType('daily'); setCycleValue(''); }}>매일</button>
-                  <button type="button" className={`cycle-btn ${cycleType === 'weekly' ? 'selected' : ''}`} onClick={() => { setCycleType('weekly'); setCycleValue('월'); }}>매주</button>
-                  <button type="button" className={`cycle-btn ${cycleType === 'biweekly' ? 'selected' : ''}`} onClick={() => { setCycleType('biweekly'); setCycleValue('월'); }}>격주</button>
-                  <button type="button" className={`cycle-btn ${cycleType === 'monthly' ? 'selected' : ''}`} onClick={() => { setCycleType('monthly'); setCycleValue('1'); }}>매월</button>
+                  <button type="button" className={`cycle-btn ${cycleType === 0 ? 'selected' : ''}`} onClick={() => { setCycleType(0); setScheduledDate(''); }}>없음</button>
+                  <button type="button" className={`cycle-btn ${cycleType === 1 ? 'selected' : ''}`} onClick={() => { setCycleType(1); setScheduledDate(''); }}>매일</button>
+                  <button type="button" className={`cycle-btn ${cycleType === 2 ? 'selected' : ''}`} onClick={() => { setCycleType(2); setScheduledDate(0); }}>매주</button>
+                  <button type="button" className={`cycle-btn ${cycleType === 3 ? 'selected' : ''}`} onClick={() => { setCycleType(3); setScheduledDate(0); }}>격주</button>
+                  <button type="button" className={`cycle-btn ${cycleType === 4 ? 'selected' : ''}`} onClick={() => { setCycleType(4); setScheduledDate(1); }}>매월</button>
                 </div>
               </div>
 
-              {(cycleType === 'weekly' || cycleType === 'biweekly') && (
+              {/* 매주/격주 일 경우 0(월) ~ 6(일) 데이터 바인딩 */}
+              {(cycleType === 2 || cycleType === 3) && (
                 <div className="form-field fade-in">
                   <label>요일 선택</label>
                   <div className="member-select-container">
-                    {WEEK_DAYS.map(day => (
-                      <button key={day} type="button" className={`member-btn ${cycleValue === day ? 'selected' : ''}`} onClick={() => setCycleValue(day)}>{day}</button>
+                    {WEEK_DAYS.map((day, idx) => (
+                      <button key={idx} type="button" className={`member-btn ${scheduledDate === idx ? 'selected' : ''}`} onClick={() => setScheduledDate(idx)}>{day}</button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {cycleType === 'monthly' && (
+              {/* 매월 일 경우 1~31 데이터 바인딩 */}
+              {cycleType === 4 && (
                 <div className="form-field fade-in">
                   <label>날짜 선택</label>
-                  <select className="date-select" value={cycleValue} onChange={e => setCycleValue(e.target.value)}>
+                  <select className="date-select" value={scheduledDate} onChange={e => setScheduledDate(Number(e.target.value))}>
                     {[...Array(31)].map((_, i) => (
                       <option key={i + 1} value={i + 1}>{i + 1}일</option>
                     ))}
@@ -248,12 +302,13 @@ const Todo = () => {
                 </div>
               )}
 
+              {/* 🌟 이름 대신 slotId를 관리하도록 변경 */}
               <div className="form-field">
                 <label>담당자 선택 (1명 이상)</label>
                 <div className="member-select-container">
-                  {MEMBERS.map(m => (
-                    <button key={m.name} type="button" className={`member-btn ${selectedAssignees.includes(m.name) ? 'selected' : ''}`} onClick={() => handleAssigneeToggle(m.name)}>
-                      {m.avatar} {m.name}
+                  {MOCK_MEMBERS.map(m => (
+                    <button key={m.slotId} type="button" className={`member-btn ${participantSlotIds.includes(m.slotId) ? 'selected' : ''}`} onClick={() => handleAssigneeToggle(m.slotId)}>
+                      {getAvatar(m.profileEmoji)} {m.nickname}
                     </button>
                   ))}
                 </div>
@@ -273,13 +328,12 @@ const Todo = () => {
         </div>
       )}
 
-      {/* 커스텀 삭제 확인 모달 */}
       {isConfirmOpen && (
         <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => setIsConfirmOpen(false)}>
           <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
             
             <h3 className="confirm-title" style={{ lineHeight: '1.4' }}>
-              <span style={{ color: '#7A9D8C' }}>'{todos.find(t => t.id === todoToDelete)?.title}'</span>을(를)<br/>
+              <span style={{ color: '#7A9D8C' }}>'{todos.find(t => t.choreId === todoToDelete)?.title}'</span>을(를)<br/>
               삭제하시겠습니까?
             </h3>
             

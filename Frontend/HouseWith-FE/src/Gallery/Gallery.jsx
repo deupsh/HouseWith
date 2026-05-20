@@ -4,9 +4,10 @@ import PhotoFormModal from './PhotoFormModal'; // 🌟 새로 만든 모달 컴�
 
 const INITIAL_ALBUMS = ['기본 앨범', '가족 여행', '우리집 반려 동물'];
 const INITIAL_PHOTOS = [
-  { id: 1, title: '맛있는 저녁 식사', date: '2026-05-18', album: '기본 앨범', url: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500', isCover: false },
-  { id: 2, title: '제주도 바다에서', date: '2026-05-19', album: '가족 여행', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500', isCover: true },
-  { id: 3, title: '댕댕이 낮잠 시간', date: '2026-05-20', album: '우리집 반려 동물', url: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500', isCover: false },
+  // 🌟 isCover -> isThumbnail 로 이름 변경
+  { id: 1, title: '맛있는 저녁 식사', date: '2026-05-18', album: '기본 앨범', url: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500', isThumbnail: false },
+  { id: 2, title: '제주도 바다에서', date: '2026-05-19', album: '가족 여행', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500', isThumbnail: true },
+  { id: 3, title: '댕댕이 낮잠 시간', date: '2026-05-20', album: '우리집 반려 동물', url: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500', isThumbnail: false },
 ];
 
 const Gallery = () => {
@@ -52,7 +53,8 @@ const Gallery = () => {
     if (editingPhoto) {
       setPhotos(photos.map(p => p.id === editingPhoto.id ? { ...p, ...photoData } : p));
     } else {
-      const newPhoto = { ...photoData, id: Date.now(), isCover: false };
+      // 🌟 isCover -> isThumbnail 로 이름 변경
+      const newPhoto = { ...photoData, id: Date.now(), isThumbnail: false };
       setPhotos([newPhoto, ...photos]); 
     }
 
@@ -66,19 +68,21 @@ const Gallery = () => {
     const albumPhotos = photos.filter((p) => p.album === albumName);
     if (albumPhotos.length === 0) return 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=500'; 
 
-    const explicitCover = albumPhotos.find((p) => p.isCover);
+    // 🌟 isCover -> isThumbnail 로 이름 변경
+    const explicitCover = albumPhotos.find((p) => p.isThumbnail);
     if (explicitCover) return explicitCover.url;
 
     const sorted = [...albumPhotos].sort((a, b) => new Date(b.date) - new Date(a.date));
     return sorted[0].url;
   };
 
-  const toggleSelectCover = (photoId, albumName, currentIsCover) => {
+  // 🌟 함수 파라미터와 로직에서도 currentIsCover -> currentIsThumbnail 로 변경
+  const toggleSelectThumbnail = (photoId, albumName, currentIsThumbnail) => {
     setPhotos(
       photos.map((p) => {
         if (p.album === albumName) {
-          if (p.id === photoId) return { ...p, isCover: !currentIsCover }; 
-          return { ...p, isCover: false }; 
+          if (p.id === photoId) return { ...p, isThumbnail: !currentIsThumbnail }; 
+          return { ...p, isThumbnail: false }; 
         }
         return p;
       })
@@ -113,7 +117,8 @@ const Gallery = () => {
         {filteredPhotos.map((photo) => (
           <div key={photo.id} className="photo-card" onClick={() => setSelectedPhoto(photo)}>
             <div className="photo-img-wrapper" style={{ backgroundImage: `url(${photo.url})` }}>
-              {photo.isCover && <span className="cover-badge">★ 대표</span>}
+              {/* 🌟 isCover -> isThumbnail 로 이름 변경 */}
+              {photo.isThumbnail && <span className="cover-badge">★ 대표</span>}
             </div>
             <div className="photo-card-info">
               <span className="photo-card-title">{photo.title}</span>
@@ -130,7 +135,7 @@ const Gallery = () => {
         + 새로운 사진 올리기
       </button>
 
-      {/* 🌟 분리된 업로드/수정 모달 컴포넌트 연결 완료! */}
+      {/* 분리된 업로드/수정 모달 컴포넌트 연결 완료! */}
       {isUploadOpen && (
         <PhotoFormModal
           onClose={() => setIsUploadOpen(false)}
@@ -165,16 +170,17 @@ const Gallery = () => {
               <button type="button" className="btn btn-danger" onClick={() => handleDeleteClick(selectedPhoto.id)}>삭제</button>
             </div>
 
+            {/* 🌟 isCover -> isThumbnail 로 이름 변경 및 함수명 변경 적용 */}
             <button
               type="button"
-              className={`btn ${selectedPhoto.isCover ? 'btn-secondary' : 'btn-yellow'}`}
+              className={`btn ${selectedPhoto.isThumbnail ? 'btn-secondary' : 'btn-yellow'}`}
               style={{ width: '100%', marginTop: '10px', boxShadow: 'none' }}
               onClick={() => {
-                toggleSelectCover(selectedPhoto.id, selectedPhoto.album, selectedPhoto.isCover);
-                setSelectedPhoto({ ...selectedPhoto, isCover: !selectedPhoto.isCover });
+                toggleSelectThumbnail(selectedPhoto.id, selectedPhoto.album, selectedPhoto.isThumbnail);
+                setSelectedPhoto({ ...selectedPhoto, isThumbnail: !selectedPhoto.isThumbnail });
               }}
             >
-              {selectedPhoto.isCover ? '★ 대표 사진 해제' : '⭐ 이 앨범의 대표 사진으로 설정'}
+              {selectedPhoto.isThumbnail ? '★ 대표 사진 해제' : '⭐ 이 앨범의 대표 사진으로 설정'}
             </button>
           </div>
         </div>

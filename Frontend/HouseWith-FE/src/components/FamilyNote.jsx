@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { iconMap } from '../constants/profileOptions';
 import './css/FamilyNote.css';
 
 const FamilyNote = () => {
@@ -6,13 +7,11 @@ const FamilyNote = () => {
   const now = new Date();
 
   // 더미 데이터: 접속 시간과 메모 작성 시간 추가
-  const [familyNotes, setFamilyNotes] = useState([
-    { id: 1, name: '나(엄마)', nickname: '엄마', avatar: '👩', note: '냉장고에 과일 깎아뒀으니 다들 챙겨 먹어~ 🍎', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 5).toISOString(), isCurrentUser: true },
-    // 아빠: 8일 전 접속 (7일 이상 미접속 조건 충족)
-    { id: 2, name: '아빠', nickname: '아빠', avatar: '👨', note: '오늘 야근 확정...', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 5).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 8).toISOString(), isCurrentUser: false },
-    { id: 3, name: '딸', nickname: '딸', avatar: '👧', note: '이번 주말에 친구들이랑 놀이공원 갈래! 🎢', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 12).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 60 * 3).toISOString(), isCurrentUser: false },
-    // 아들: 25시간 전 메모 작성 (24시간 경과로 메모 미노출 조건 충족)
-    { id: 4, name: '아들', nickname: '아들', avatar: '👦', note: '아 피곤해... 오늘 학원 쉬고 싶다 😪', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 25).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 60 * 10).toISOString(), isCurrentUser: false },
+const [familyNotes, setFamilyNotes] = useState([
+    { id: 1, name: '나(엄마)', nickname: '엄마', avatar: 1, note: '냉장고에 과일 깎아뒀으니 다들 챙겨 먹어~ 🍎', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 5).toISOString(), isCurrentUser: true },
+    { id: 2, name: '아빠', nickname: '아빠', avatar: 2, note: '오늘 야근 확정...', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 5).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 8).toISOString(), isCurrentUser: false },
+    { id: 3, name: '딸', nickname: '딸', avatar: 3, note: '이번 주말에 친구들이랑 놀이공원 갈래! 🎢', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 12).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 60 * 3).toISOString(), isCurrentUser: false },
+    { id: 4, name: '아들', nickname: '아들', avatar: 4, note: '아 피곤해... 오늘 학원 쉬고 싶다 😪', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 25).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 60 * 10).toISOString(), isCurrentUser: false },
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,7 +26,7 @@ const FamilyNote = () => {
     return diffDays >= 7;
   };
 
-  // 🌟 [7_1] 메모가 24시간 이내에 작성되었는지 체크 함수
+  // 메모가 24시간 이내에 작성되었는지 체크 함수
   const isNoteValid = (updatedAtIso) => {
     if (!updatedAtIso) return false;
     const updatedDate = new Date(updatedAtIso);
@@ -61,6 +60,10 @@ const FamilyNote = () => {
     setIsModalOpen(false);
   };
 
+  const getAvatarImage = (avatarId) => {
+    return iconMap[String(avatarId)] || iconMap['1'];
+  };
+
   return (
     <section className="note-section">
       <div className="section-header">
@@ -77,7 +80,13 @@ const FamilyNote = () => {
 
           return (
             <div key={member.id} className={`note-card ${member.isCurrentUser ? 'current-user' : ''}`}>
-              <div className="avatar-large">{member.avatar}</div>
+              <div className="avatar-large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <img 
+                  src={getAvatarImage(member.avatar)} 
+                  alt={`${member.nickname} profile`} 
+                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+                />
+              </div>
               <strong className="member-name">{member.name}</strong>
               
               {/* 🌟 클래스와 스타일 분기 처리 */}

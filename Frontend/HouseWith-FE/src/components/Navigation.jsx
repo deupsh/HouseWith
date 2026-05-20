@@ -45,7 +45,12 @@ const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
           ) : (
-            <span>{iconList[currentProfile.emoji_id]}</span>
+            // 🌟 수정된 부분: span 태그 대신 img 태그로 변경하여 커스텀 아이콘 렌더링
+            <img 
+              src={iconList[currentProfile.emoji_id]} 
+              alt="avatar" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            />
           )}
         </div>
       </div>
