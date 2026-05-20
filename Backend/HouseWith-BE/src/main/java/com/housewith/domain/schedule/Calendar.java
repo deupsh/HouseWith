@@ -15,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -46,4 +47,14 @@ public class Calendar extends BaseTimeEntity {
 
     @Column(name = "uploaded_by", nullable = false)
     private Long uploadedBy;
+
+    @Builder
+    public Calendar(User user, String title, String content, LocalDateTime startTime, LocalDateTime endTime, Long uploadedBy) {
+        this.user = user;
+        this.title = title;
+        this.content = content;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.uploadedBy = uploadedBy;
+    }
 }

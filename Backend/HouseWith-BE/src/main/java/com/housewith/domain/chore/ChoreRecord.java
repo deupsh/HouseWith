@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -37,4 +38,13 @@ public class ChoreRecord {
 
     @Column(name = "completed_at", columnDefinition = "DATETIME(6)")
     private LocalDateTime completedAt; 
+
+    @Builder
+    public ChoreRecord(Long profileId, Long choreId) {
+        this.profileId = profileId;
+        this.choreId = choreId;
+        // 생성 시 무조건 미완료 상태 (완료 처리는 별도 비즈니스 로직에서 시간과 함께 update)
+        this.isCompleted = false;
+        this.completedAt = null;
+    }
 }

@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -50,4 +51,15 @@ public class Photo {
 
     @Column(name = "is_representative", columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isRepresentative = false;
+
+    @Builder
+    public Photo(User user, String title, LocalDate photoDate, String albumName, Profile uploadedBy, String fileName, Boolean isRepresentative) {
+        this.user = user;
+        this.title = title;
+        this.photoDate = photoDate;
+        this.albumName = albumName;
+        this.uploadedBy = uploadedBy;
+        this.fileName = fileName;
+        this.isRepresentative = (isRepresentative != null) ? isRepresentative : false;
+    }
 }

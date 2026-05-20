@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -33,4 +34,10 @@ public class ChoreParticipant {
 
     @Column(name = "chore_id", nullable = false)
     private Long choreId; 
+
+    @Builder
+    public ChoreParticipant(Long profileId, Long choreId) {
+        this.profileId = profileId;
+        this.choreId = choreId;
+    }
 }
