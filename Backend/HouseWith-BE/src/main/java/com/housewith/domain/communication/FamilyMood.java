@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -43,4 +44,11 @@ public class FamilyMood {
     @CreatedDate
     @Column(name = "created_at", columnDefinition = "DATETIME(6)", updatable = false)
     private LocalDateTime createdAt;
+
+    @Builder
+    public FamilyMood(Long userId, Long profileId, String moodText) {
+        this.userId = userId;
+        this.profileId = profileId;
+        this.moodText = moodText;
+    }
 }

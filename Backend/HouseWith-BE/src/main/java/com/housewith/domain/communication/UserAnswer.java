@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -46,4 +47,11 @@ public class UserAnswer {
     @CreatedDate
     @Column(name = "created_at", columnDefinition = "DATETIME(6)", updatable = false)
     private LocalDateTime createdAt;
+
+    @Builder
+    public UserAnswer(Long profileId, Long questionId, String content) {
+        this.profileId = profileId;
+        this.questionId = questionId;
+        this.content = content;
+    }
 }

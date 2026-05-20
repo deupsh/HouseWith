@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -42,4 +43,12 @@ public class Chore extends BaseTimeEntity{
     @Column(name = "cycle_value", length = 50)
     private String cycleValue;
     
+    @Builder
+    public Chore(User user, Long createdBy, String title, Integer cycleType, String cycleValue) {
+        this.user = user;
+        this.createdBy = createdBy;
+        this.title = title;
+        this.cycleType = cycleType;
+        this.cycleValue = cycleValue;
+    }
 }

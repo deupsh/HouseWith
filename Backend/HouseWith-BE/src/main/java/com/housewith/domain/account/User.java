@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -45,4 +46,15 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Profile> profiles = new ArrayList<>();
+
+    @Builder
+    public User(String email, String password, String phoneNumber, String groupName) {
+        this.email = email;
+        this.password = password;
+        this.phoneNumber = phoneNumber;
+        this.groupName = groupName;
+        // 시스템 강제 초기값
+        this.currentQuestionId = 0L;
+        this.isReceivingQuestion = false;
+    }
 }

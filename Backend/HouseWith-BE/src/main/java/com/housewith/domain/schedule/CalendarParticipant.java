@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -32,4 +33,10 @@ public class CalendarParticipant {
 
     @Column(name = "calendar_id", nullable = false)
     private Long calendarId; 
+    
+    @Builder
+    public CalendarParticipant(Long profileId, Long calendarId) {
+        this.profileId = profileId;
+        this.calendarId = calendarId;
+    }
 }
