@@ -16,5 +16,5 @@ import com.housewith.domain.communication.FamilyMood;
 
 public interface FamilyMoodRepository extends JpaRepository<FamilyMood, Long> {
 	// 7_1 오늘의 기분: 작성 시간 기준 24시간 이내의 기분만 가져오기
-	List<FamilyMood> findByUser_IdAndCreatedAtAfter(Long userId, LocalDateTime twentyFourHoursAgo);
+	List<FamilyMood> findByUserIdAndCreatedAtAfter(Long userId, LocalDateTime twentyFourHoursAgo);
 }
