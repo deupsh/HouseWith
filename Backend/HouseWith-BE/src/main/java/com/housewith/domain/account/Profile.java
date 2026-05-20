@@ -36,8 +36,8 @@ public class Profile {
     @Column(name = "pin_code" , nullable = false, length = 255)
     private String pinCode;
 
-    @Column(name = "emoji_id", columnDefinition = "INT")
-    private Integer emojiId = 0;
+    @Column(name = "emoji_id")
+    private String emojiId;
 
     @Column(name = "background_id", columnDefinition = "INT")
     private Integer backgroundId = 0;
@@ -52,12 +52,12 @@ public class Profile {
     private LocalDateTime lastAccessTime;
 
     @Builder
-    public Profile(User user, String nickname, String pinCode, Integer emojiId, Integer backgroundId, String customProfileImage) {
+    public Profile(User user, String nickname, String pinCode, String emojiId, Integer backgroundId, String customProfileImage) {
         this.user = user;
         this.nickname = nickname;
         this.pinCode = pinCode;
         // DTO에서 안 들어오면 0 처리
-        this.emojiId = (emojiId != null) ? emojiId : 0;
+        this.emojiId = (emojiId != null) ? emojiId : "0";
         this.backgroundId = (backgroundId != null) ? backgroundId : 0;
         this.customProfileImage = customProfileImage;
         // 커스텀 이미지가 존재하면 타입 1, 아니면 0(이모지)
@@ -66,7 +66,7 @@ public class Profile {
     }
     
     // 프로필 정보 수정 비즈니스 로직 
-    public void modifyProfileDetails(String nickname, String pinCode, Integer emojiId, Integer backgroundId, String customProfileImage) {
+    public void modifyProfileDetails(String nickname, String pinCode, String emojiId, Integer backgroundId, String customProfileImage) {
         if (nickname != null) this.nickname = nickname;
         if (pinCode != null) this.pinCode = pinCode;
         if (emojiId != null) this.emojiId = emojiId;

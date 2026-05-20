@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 /** 작성자: 박성현
  * 작성 시간: 2026-05-19/1510i
  * 마지막 수정자: 박성현
- * 마지막 수정 시간:2026-05-19/1510i
- * 수정 내용: 
+ * 마지막 수정 시간:2026-05-20/1710i
+ * 수정 내용: Integer profileEmoji → String profileEmoji
  * 역할: 슬롯 프로필 수정 요청 시 변경할 정보 입력 및 유효성 검증용 DTO */
 
 @Getter
@@ -28,7 +28,7 @@ public class SlotUpdateRequest {
     private String pinCode; // 수정할 핀번호
 
     // 아이콘+색상 조합 선택 시 사용, 프로필 사진 선택 시 NULL
-    private Integer profileEmoji; // 수정할 이모지 번호
+    private String profileEmoji; // 수정할 이모지 번호
     private Integer profileBackground; // 수정할 배경색 번호
 
     // 프로필 사진 선택 시 사용, 아이콘+색상 조합 선택 시 NULL
