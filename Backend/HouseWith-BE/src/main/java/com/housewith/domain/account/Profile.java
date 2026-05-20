@@ -36,16 +36,16 @@ public class Profile {
     @Column(name = "pin_code" , nullable = false, length = 255)
     private String pinCode;
 
-    @Column(name = "emoji_id", columnDefinition = "INT DEFAULT 0")
+    @Column(name = "emoji_id", columnDefinition = "INT")
     private Integer emojiId = 0;
 
-    @Column(name = "background_id", columnDefinition = "INT DEFAULT 0")
+    @Column(name = "background_id", columnDefinition = "INT")
     private Integer backgroundId = 0;
 
     @Column(name = "custom_profile_image", length = 255)
     private String customProfileImage;
 
-    @Column(name = "profile_type", columnDefinition = "TINYINT DEFAULT 0")
+    @Column(name = "profile_type", columnDefinition = "TINYINT")
     private Integer profileType = 0; // 0: 이모지, 1: 커스텀
 
     @Column(name = "last_access_time")

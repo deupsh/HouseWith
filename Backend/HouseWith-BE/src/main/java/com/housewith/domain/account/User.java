@@ -38,10 +38,10 @@ public class User {
     @Column(name = "group_name", nullable = false, length = 20)
     private String groupName;
 
-    @Column(name = "current_question_id", columnDefinition = "INT DEFAULT 0")
+    @Column(name = "current_question_id", columnDefinition = "BIGINT")
     private Long currentQuestionId; // 기본값 0
 
-    @Column(name = "is_receiving_question", columnDefinition = "TINYINT(1) DEFAULT 0")
+    @Column(name = "is_receiving_question", columnDefinition = "TINYINT(1)")
     private Boolean isReceivingQuestion = false; // 기본값은 0이고 이진으로 활성화 상태 판단
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
