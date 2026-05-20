@@ -26,3 +26,9 @@ yarn-error.log*
 # --- Frontend Dependencies
 **/node_modules
 **/node_modules/*
+
+# Custom Security #
+src/main/resources/application.properties
+src/main/resources/application-*.properties
+src/main/resources/application.yml
+src/main/resources/application-*.yml

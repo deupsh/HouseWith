@@ -25,9 +25,9 @@ public class MockController {
     public ResponseEntity<LoginResponse> mockLogin() {
 
         List<SlotItem> slots = List.of(
-                new SlotItem(1L, "엄마", 3, 2, null),
-                new SlotItem(2L, "아빠", 5, 1, null),
-                new SlotItem(3L, "딸", 7, 4, "profile.jpg")
+                new SlotItem(1L, "엄마", "3", 2, null),
+                new SlotItem(2L, "아빠", "5", 1, null),
+                new SlotItem(3L, "딸", "7", 4, "profile.jpg")
         );
 
         LoginResponse response = new LoginResponse(

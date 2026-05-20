@@ -16,7 +16,7 @@ public class SlotItem {
 
     private Long slotId; // 슬롯 PK
     private String nickname; // 닉네임
-    private String profileEmoji; // 이모지 번호
+    private String profileEmoji; // 이모지 경로
     private Integer profileBackground; // 배경색 번호
     private String customProfileImage; // 프로필 사진 파일명
 }
