@@ -1,5 +1,136 @@
 package com.housewith.service;
 
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.housewith.domain.account.Profile;
+import com.housewith.domain.account.User;
+import com.housewith.domain.photo.Photo;
+import com.housewith.dto.photo.PhotoDetailResponse;
+import com.housewith.dto.photo.PhotoSummaryResponse;
+import com.housewith.dto.photo.PhotoUploadRequest;
+import com.housewith.persistence.account.ProfileRepository;
+import com.housewith.persistence.account.UserRepository;
+import com.housewith.persistence.photo.PhotoRepository;
+
+import lombok.RequiredArgsConstructor;
+
+/** 작성자: 박성현
+ * 작성 시간: 2026-05-21/1220i
+ * 마지막 수정자: 박성현
+ * 마지막 수정 시간: 2026-05-21/1220i
+ * 역할: 사진첩 비즈니스 로직 담당 Service */
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PhotoService {
-    
+
+    private final PhotoRepository photoRepository;
+    private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
+
+    // 7_1 사진 업로드
+    @Transactional
+    public Long uploadPhoto(Long userId, Long profileId, PhotoUploadRequest request, String storedFileName) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 가족 계정입니다."));
+
+        // 연관관계 매핑을 위해 DB에서 Profile 엔티티 전체를 조회
+        Profile uploader = profileRepository.findById(profileId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로필 슬롯입니다."));
+
+        LocalDate finalDate = (request.getDate() != null) ? request.getDate() : LocalDate.now();
+        String finalAlbumName = (request.getAlbum() != null && !request.getAlbum().isBlank()) ? request.getAlbum() : "기본 앨범";
+
+        Photo photo = Photo.builder()
+                .user(user)
+                .title(request.getTitle())
+                .photoDate(finalDate)
+                .albumName(finalAlbumName)
+                .uploadedBy(uploader) // Long 타입 ID가 아닌 Profile 객체 통째로 주입
+                .fileName(storedFileName)
+                .isRepresentative(false)
+                .build();
+
+        return photoRepository.save(photo).getId();
+    }
+
+    // 7_2 앨범별 사진 목록 조회
+    public List<PhotoSummaryResponse> getPhotoSummaryList(Long userId, String albumName) {
+        String targetAlbum = (albumName != null && !albumName.isBlank()) ? albumName : "기본 앨범";
+        
+        // 레포지토리에 구현하신 메서드 스펙 정확히 호출
+        List<Photo> photos = photoRepository.findByUser_IdAndAlbumNameOrderByPhotoDateDesc(userId, targetAlbum);
+
+        return photos.stream()
+                .map(p -> new PhotoSummaryResponse(
+                        p.getId(),
+                        p.getFileName(),
+                        p.getTitle(),
+                        p.getPhotoDate(),
+                        p.getIsRepresentative() // Boolean 객체이므로 get() 활용
+                ))
+                .toList();
+    }
+
+    // 7_3 사진 단건 상세 조회
+    public PhotoDetailResponse getPhotoDetail(Long photoId, Long userId) {
+        Photo photo = photoRepository.findById(photoId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사진입니다."));
+
+        // 무결성 방어: 다른 가족의 사진 조회 차단
+        if (!photo.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("해당 사진에 대한 접근 권한이 없습니다.");
+        }
+
+        // 지연 로딩(LAZY)된 Profile 객체를 탐색하여 닉네임 추출
+        String uploaderNickname = photo.getUploadedBy().getNickname();
+
+        return new PhotoDetailResponse(
+                photo.getId(),
+                photo.getFileName(),
+                photo.getTitle(),
+                photo.getPhotoDate(),
+                photo.getAlbumName(),
+                uploaderNickname,
+                photo.getIsRepresentative()
+        );
+    }
+
+    // 7_4 대표 사진 설정
+    @Transactional
+    public void setAlbumThumbnail(Long photoId, Long userId) {
+        Photo targetPhoto = photoRepository.findById(photoId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사진입니다."));
+
+        if (!targetPhoto.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("해당 사진에 대한 접근 권한이 없습니다.");
+        }
+
+        // 기존에 해당 앨범의 대표 사진이었던 레코드 조회 후 해제
+        photoRepository.findByUser_IdAndAlbumNameAndIsRepresentativeTrue(userId, targetPhoto.getAlbumName())
+                .ifPresent(existing -> {
+                    existing.changeRepresentativeStatus(false);
+                });
+
+        // 새 사진을 대표 사진으로 설정
+        targetPhoto.changeRepresentativeStatus(true);
+    }
+
+    // 7_5 사진 삭제
+    @Transactional
+    public void deletePhoto(Long photoId, Long userId) {
+        Photo photo = photoRepository.findById(photoId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사진입니다."));
+
+        if (!photo.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("해당 사진에 대한 접근 권한이 없습니다.");
+        }
+
+        photoRepository.delete(photo);
+    }
 }

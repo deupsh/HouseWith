@@ -1,4 +1,4 @@
-package com.housewith.controller.schedule;
+package com.housewith.controller;
 
 import java.util.List;
 

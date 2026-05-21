@@ -18,6 +18,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 작성자: 백승훈
+ * 작성 시간: 2026-05-19
+ * 마지막 수정자: 박성현
+ * 마지막 수정 시간:2026-05-21/1220i
+ * 수정 내용: Update 메소드 추가 (.save → 더티 체킹)
+ * 역할: photos 테이블의 Entity */
+
 @Entity
 @Table(name = "photos")
 @Getter
@@ -61,5 +68,10 @@ public class Photo {
         this.uploadedBy = uploadedBy;
         this.fileName = fileName;
         this.isRepresentative = (isRepresentative != null) ? isRepresentative : false;
+    }
+    
+    // 일정 수정 메소드 (JPA의 .save 공통 메소드가 아닌 Entity에 작성)
+    public void changeRepresentativeStatus(Boolean status) {
+        this.isRepresentative = status;
     }
 }
