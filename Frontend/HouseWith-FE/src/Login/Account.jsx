@@ -165,7 +165,6 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
         onSubmit={handleModalSubmit} 
       />
     
-// PIN 번호 입력 모달
       {pinModalProfile && (
         <div className="modal-overlay" onClick={() => setPinModalProfile(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '320px', textAlign: 'center' }}>
