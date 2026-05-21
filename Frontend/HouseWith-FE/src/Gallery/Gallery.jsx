@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Gallery.css';
 import axios from 'axios';
 import PhotoFormModal from './PhotoFormModal';
@@ -68,7 +68,7 @@ const Gallery = () => {
     setIsConfirmOpen(true);
   };
 
-  // 🌟 3. 사진 삭제하기 (DELETE)
+  // 3. 사진 삭제하기 (DELETE)
   const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -88,7 +88,7 @@ const Gallery = () => {
     }
   };
 
-  // 🌟 4. 사진 업로드 및 수정 (POST / PUT)
+  // 4. 사진 업로드 및 수정 (POST / PUT)
   const handleSavePhoto = async (photoData) => {
     try {
       const token = localStorage.getItem('accessToken');
