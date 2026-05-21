@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import './QnA.css';
 import { iconList, colorList } from '../constants/profileOptions';
 
-// 백엔드 API 응답 스펙에 맞춘 Mock 데이터
+// 테스트용 더미
 const MOCK_QUESTION_RESPONSE = {
   questionId: 12,
   content: "만약 우리 가족이 다 함께 무인도에 간다면 각자 어떤 역할을 할까요?",
@@ -26,21 +27,77 @@ const MOCK_QUESTION_RESPONSE = {
   ]
 };
 
-// 2. App.jsx에서 currentProfile을 넘겨받는다고 가정 (기본값 세팅)
 const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3, custom_profile_image: null } }) => {
   const [isQuestionEnabled, setIsQuestionEnabled] = useState(true);
-  const [questionData, setQuestionData] = useState(MOCK_QUESTION_RESPONSE);
+  const [questionData, setQuestionData] = useState(null);
   const [myAnswerInput, setMyAnswerInput] = useState('');
 
-  const handleAnswerSubmit = () => {
+  //Get
+  const fetchWeeklyQuestion = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.get('/api/qna/weekly', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setQuestionData(response.data);
+    } catch (error) {
+      console.error("QnA 데이터를 불러오지 못했습니다.", error);
+      // 백엔드 미연결 시 로컬 테스트를 위한 Fallback
+      setQuestionData(MOCK_QUESTION_RESPONSE);
+    }
+  };
+
+  // 컴포넌트 마운트 시 최초 1회 실행
+  useEffect(() => {
+    fetchWeeklyQuestion();
+  }, []);
+
+  //POST
+  const handleAnswerSubmit = async () => {
     if (myAnswerInput.trim().length === 0) return;
     
-    setQuestionData({
-      ...questionData,
-      myAnswer: myAnswerInput.trim()
-    });
-    setMyAnswerInput('');
+    try {
+      const token = localStorage.getItem('accessToken');
+      
+      // 답변 전송
+      await axios.post('/api/qna/answer', { answer: myAnswerInput.trim() }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // 성공 시 데이터를 다시 불러와서 화면 갱신 (가족들의 답변이 보이도록!)
+      fetchWeeklyQuestion();
+      setMyAnswerInput('');
+
+    } catch (error) {
+      console.error("답변 제출 실패:", error);
+      // Fallback: 로컬에서만 상태 업데이트
+      setQuestionData({
+        ...questionData,
+        myAnswer: myAnswerInput.trim()
+      });
+      setMyAnswerInput('');
+    }
   };
+
+  //주간 질문 ON/OFF 설정 PATCH
+  const handleToggleSettings = async () => {
+    const newState = !isQuestionEnabled;
+    setIsQuestionEnabled(newState);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      await axios.patch('/api/qna/settings', { enabled: newState }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (error) {
+      console.error("설정 변경 실패:", error);
+      // 실패하더라도 Fallback 로컬 상태는 이미 업데이트됨
+    }
+  };
+  // 데이터 로딩 중일 때 보여줄 화면
+  if (!questionData) {
+    return <div style={{ textAlign: 'center', padding: '50px' }}>질문을 불러오는 중입니다... ⏳</div>;
+  }
 
   return (
     <div className="qna-page">
@@ -56,7 +113,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
           <input 
             type="checkbox" 
             checked={isQuestionEnabled} 
-            onChange={() => setIsQuestionEnabled(!isQuestionEnabled)} 
+            onChange={handleToggleSettings}
           />
           <span className="slider round"></span>
         </label>
@@ -96,7 +153,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
             <div className="answer-list">
               <h3 className="answer-list-title">가족들의 답변 👨‍👩‍👧‍👦</h3>
               
-              {/* 🌟 1. 내 답변 카드 */}
+              {/* 1. 내 답변 카드 */}
               <div className="answer-card my-card">
                 <div 
                   className="avatar" 
@@ -114,7 +171,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
                 </div>
               </div>
 
-              {/* 🌟 2. 가족들의 답변 카드 */}
+              {/* 2. 가족 답변 카드 */}
               {questionData.answers.map((ans, idx) => (
                 <div key={idx} className="answer-card">
                   <div 

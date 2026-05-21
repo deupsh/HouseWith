@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import noImage from '../assets/no-image.png';
 
 const PhotoFormModal = ({ onClose, onSave, editingPhoto, albums, onDeleteClick }) => {
   const [title, setTitle] = useState('');
@@ -69,7 +70,7 @@ const PhotoFormModal = ({ onClose, onSave, editingPhoto, albums, onDeleteClick }
       title: title.trim(),
       date: finalDate,
       album: finalAlbum,
-      url: photoUrl || 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=500',
+      url: photoUrl || noImage,
     });
   };
 

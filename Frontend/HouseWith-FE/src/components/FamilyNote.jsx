@@ -1,24 +1,45 @@
 import React, { useState } from 'react';
 import { iconMap } from '../constants/profileOptions';
+import axios from 'axios';
 import './css/FamilyNote.css';
 
+// 🚨 백엔드 연결 전 UI 테스트용 가짜 데이터 (로딩 시 에러 나면 보여줄 용도)
+const MOCK_NOTES = [
+  { id: 1, name: '나(엄마)', nickname: '엄마', avatar: 1, note: '냉장고에 과일 깎아뒀으니 다들 챙겨 먹어~ 🍎', noteUpdatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), lastLogin: new Date(Date.now() - 1000 * 60 * 5).toISOString(), isCurrentUser: true },
+  { id: 2, name: '아빠', nickname: '아빠', avatar: 2, note: '오늘 야근 확정...', noteUpdatedAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), lastLogin: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(), isCurrentUser: false },
+  { id: 3, name: '딸', nickname: '딸', avatar: 3, note: '이번 주말에 친구들이랑 놀이공원 갈래! 🎢', noteUpdatedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(), lastLogin: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), isCurrentUser: false },
+  { id: 4, name: '아들', nickname: '아들', avatar: 4, note: '아 피곤해... 오늘 학원 쉬고 싶다 😪', noteUpdatedAt: new Date(Date.now() - 1000 * 60 * 60 * 25).toISOString(), lastLogin: new Date(Date.now() - 1000 * 60 * 60 * 10).toISOString(), isCurrentUser: false },
+];
+
 const FamilyNote = () => {
-  // 실제 현재 시간 (테스트 시점)
   const now = new Date();
 
-  // 더미 데이터: 접속 시간과 메모 작성 시간 추가
-const [familyNotes, setFamilyNotes] = useState([
-    { id: 1, name: '나(엄마)', nickname: '엄마', avatar: 1, note: '냉장고에 과일 깎아뒀으니 다들 챙겨 먹어~ 🍎', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 2).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 5).toISOString(), isCurrentUser: true },
-    { id: 2, name: '아빠', nickname: '아빠', avatar: 2, note: '오늘 야근 확정...', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 5).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 8).toISOString(), isCurrentUser: false },
-    { id: 3, name: '딸', nickname: '딸', avatar: 3, note: '이번 주말에 친구들이랑 놀이공원 갈래! 🎢', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 12).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 60 * 3).toISOString(), isCurrentUser: false },
-    { id: 4, name: '아들', nickname: '아들', avatar: 4, note: '아 피곤해... 오늘 학원 쉬고 싶다 😪', noteUpdatedAt: new Date(now.getTime() - 1000 * 60 * 60 * 25).toISOString(), lastLogin: new Date(now.getTime() - 1000 * 60 * 60 * 10).toISOString(), isCurrentUser: false },
-  ]);
-
+  // API로 채울 예정
+  const [familyNotes, setFamilyNotes] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [error, setError] = useState('');
 
-  // 7일 이상 미접속 여부 체크 함수
+  // 백엔드에서 전체 가족 노트 불러오기 (GET)
+  const fetchFamilyNotes = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.get('/api/family-notes', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFamilyNotes(response.data);
+    } catch (error) {
+      console.error("가족 노트 조회 실패:", error);
+      // 백엔드가 아직 준비 안 됐으면 더미 데이터 세팅
+      setFamilyNotes(MOCK_NOTES);
+    }
+  };
+
+  // 컴포넌트 렌더링 시 최초 1회 노트 목록 가져오기
+  useEffect(() => {
+    fetchFamilyNotes();
+  }, []);
+
   const isInactiveFor7Days = (lastLoginIso) => {
     const loginDate = new Date(lastLoginIso);
     const diffTime = Math.abs(now - loginDate);
@@ -26,7 +47,6 @@ const [familyNotes, setFamilyNotes] = useState([
     return diffDays >= 7;
   };
 
-  // 메모가 24시간 이내에 작성되었는지 체크 함수
   const isNoteValid = (updatedAtIso) => {
     if (!updatedAtIso) return false;
     const updatedDate = new Date(updatedAtIso);
@@ -35,7 +55,6 @@ const [familyNotes, setFamilyNotes] = useState([
     return diffHours <= 24;
   };
 
-  // 내 슬롯 클릭 시 모달 열기
   const handleSlotClick = (member) => {
     if (member.isCurrentUser) {
       setNewNote(isNoteValid(member.noteUpdatedAt) ? member.note : '');
@@ -44,20 +63,37 @@ const [familyNotes, setFamilyNotes] = useState([
     }
   };
 
-  // [7_1] 메모 저장 처리 (1~20자 조건)
-  const handleNoteSubmit = (e) => {
+  //백엔드에 내 노트 전송 및 저장 (PUT)
+  const handleNoteSubmit = async (e) => {
     e.preventDefault();
     if (newNote.trim().length < 1 || newNote.trim().length > 20) {
       setError('오늘의 한줄은 1자 이상 20자 이내로 입력해주세요.');
       return;
     }
 
-    setFamilyNotes(prevNotes => 
-      prevNotes.map(n => 
-        n.isCurrentUser ? { ...n, note: newNote.trim(), noteUpdatedAt: new Date().toISOString() } : n
-      )
-    );
-    setIsModalOpen(false);
+    try {
+      const token = localStorage.getItem('accessToken');
+      
+      // 백엔드에 내 새로운 상태 메시지 전송
+      await axios.put('/api/family-notes/me', { note: newNote.trim() }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // API 통신 성공 시, 화면 갱신을 위해 데이터 다시 가져오기
+      fetchFamilyNotes();
+      setIsModalOpen(false);
+
+    } catch (error) {
+      console.error("노트 저장 실패:", error);
+      
+      // 🚨 통신 실패 시 UI 임시 업데이트용 Fallback
+      setFamilyNotes(prevNotes => 
+        prevNotes.map(n => 
+          n.isCurrentUser ? { ...n, note: newNote.trim(), noteUpdatedAt: new Date().toISOString() } : n
+        )
+      );
+      setIsModalOpen(false);
+    }
   };
 
   const getAvatarImage = (avatarId) => {
@@ -89,11 +125,9 @@ const [familyNotes, setFamilyNotes] = useState([
               </div>
               <strong className="member-name">{member.name}</strong>
               
-              {/* 🌟 클래스와 스타일 분기 처리 */}
               <div 
                 className={`note-bubble ${isInactive ? 'nudge-bubble' : ''} ${!showNote && !isInactive && member.isCurrentUser ? 'empty-bubble' : ''} ${member.isCurrentUser ? 'editable-bubble' : ''}`}
                 onClick={() => handleSlotClick(member)}
-                // 다른 사람의 빈 말풍선은 카드 높이 유지를 위해 공간은 차지하되 눈에는 안 보이게(hidden) 처리
                 style={{ visibility: isOtherEmpty ? 'hidden' : 'visible' }}
               >
                 {isInactive ? (
@@ -111,7 +145,6 @@ const [familyNotes, setFamilyNotes] = useState([
         })}
       </div>
 
-      {/* 🌟 모달 부분은 기존과 동일하게 유지 */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div className="modal-content note-modal" onClick={(e) => e.stopPropagation()}>

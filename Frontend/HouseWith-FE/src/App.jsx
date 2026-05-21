@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import Login from './Login/Login';
@@ -21,6 +21,16 @@ function App() {
   // 알림
   const [toastMessage, setToastMessage] = useState(null);
   const showToast = (msg) => setToastMessage(msg);
+
+  // 앱이 처음 렌더링될 때 딱 한 번 실행되는 자동 로그인 로직
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      setIsLoggedIn(true);
+      // 나중에 백엔드 API가 완성되면, axios.get('/api/auth/verify') 같은 걸 호출하여
+      // 만료되지 않은 진짜 토큰인지 검사하는 로직을 여기에 추가 가능
+    }
+  }, []);
 
   return (
     <BrowserRouter>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ErrorMessage from '../components/ErrorMessage'; 
+import ErrorMessage from '../components/ErrorMessage';
 import { X } from 'lucide-react';
 import './Calendar.css'; 
 

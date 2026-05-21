@@ -3,11 +3,11 @@
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #5D7363; /* 담 서비스 느낌의 차분한 녹색 */
+  background-color: #5D7363;
   color: white;
   padding: 12px 24px;
   border-radius: 50px; /* 아주 둥글게 */
-  font-weight: 600;
+  font-weight: 500;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   z-index: 9999;
   animation: slideDown 0.3s ease-out;

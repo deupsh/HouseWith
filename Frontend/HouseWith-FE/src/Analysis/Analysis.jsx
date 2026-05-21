@@ -1,28 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // 🌟 Axios 임포트 추가!
 import './Analysis.css';
 
-const MOCK_API_RESPONSE = {
-  weekLabel: "2026년 5월 2주차",
-  weekRange: "5월 5일 - 5월 11일",
-  participationComment: "이번 주 모든 가족 구성원이 집안일에 참여했어요! 함께 만드는 집이 더 따뜻합니다.",
-  isOverloaded: true, // 백엔드 응답
-  overloadComment: "엄마님이 전체 집안일의 51.4%를 담당하고 계십니다. 조금 더 균등하게 분담하면 어떨까요?",
-  recommendComment: "주중 저녁 설거지를 돌아가며 하면 부담이 줄어들 것 같아요. 요일별로 담당자를 정해보세요!",
-  totalCount: 35,
-  dailyAverage: 5.0,
-  participationRate: 100.0,
-  memberStats: [
-    { nickname: '엄마', count: 18, profileEmoji: 1, profileBackground: 1, customProfileImage: null },
-    { nickname: '아빠', count: 8, profileEmoji: 2, profileBackground: 2, customProfileImage: null },
-    { nickname: '딸', count: 5, profileEmoji: 3, profileBackground: 3, customProfileImage: null },
-    { nickname: '아들', count: 4, profileEmoji: 4, profileBackground: 4, customProfileImage: null },
-  ],
-  categoryStats: [
-    { categoryName: '청소', count: 16, percentage: 45.7 },
-    { categoryName: '요리/설거지', count: 10, percentage: 28.6 },
-    { categoryName: '빨래', count: 5, percentage: 14.3 },
-    { categoryName: '기타', count: 4, percentage: 11.4 },
-  ]
+// 깡통 데이터
+const DEFAULT_EMPTY_DATA = {
+  weekLabel: "로딩 중...",
+  weekRange: "-월 -일 - -월 -일",
+  participationComment: "데이터를 불러오고 있습니다...",
+  isOverloaded: false,
+  overloadComment: "",
+  recommendComment: "데이터 분석 중입니다...",
+  totalCount: 0,
+  dailyAverage: 0.0,
+  participationRate: 0,
+  memberStats: [],
+  categoryStats: []
 };
 
 const getMemberColor = (index) => {
@@ -53,18 +45,53 @@ const getLabelCoords = (percent, offset, radius) => {
 };
 
 const Analysis = () => {
-  // 실제 연동 시 axios.get('/api/statistics') 결과를 data 상태에 담습니다.
-  const data = MOCK_API_RESPONSE;
+  // 🌟 1. 진짜 통신 데이터를 담을 상태(State) 생성 (초기값은 빈 깡통)
+  const [data, setData] = useState(DEFAULT_EMPTY_DATA);
+  const [isLoading, setIsLoading] = useState(true); // 로딩 상태
 
   const [showCharts, setShowCharts] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [hoveredMember, setHoveredMember] = useState(null);
 
+  // 🌟 2. 백엔드에서 데이터 가져오는 함수 생성
+  const fetchWeeklyAnalysis = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      // 오늘 날짜 구하기 (YYYY-MM-DD 형식)
+      const today = new Date().toISOString().split('T')[0]; 
+
+      // 백엔드 주방에 주간 분석 데이터 주문!
+      const response = await axios.get(`/api/analysis/weekly?date=${today}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      console.log("통계 데이터 도착 완료!", response.data);
+      setData(response.data); // 주방에서 준 진짜 데이터로 덮어쓰기!
+
+    } catch (error) {
+      console.error("통계 조회 실패 (서버가 아직 준비 안 됨):", error);
+      // 백엔드가 아직 완성 안 되었으니, 에러가 나면 아까 쓰던 MOCK 데이터를 임시로 띄워줍니다.
+      // 🚨 (나중에 백엔드 완성되면 아래 두 줄은 지우시면 됩니다!)
+      console.log("임시 더미 데이터를 화면에 표시합니다.");
+      setData(require('./mockData.json')); // 만약 MOCK_API_RESPONSE를 위에 그대로 뒀다면 setData(MOCK_API_RESPONSE); 로 변경하세요.
+    } finally {
+      setIsLoading(false); // 로딩 끝!
+    }
+  };
+
+  // 🌟 3. 화면이 맨 처음 켜질 때 딱 한 번 실행 (useEffect)
   useEffect(() => {
-    setTimeout(() => setShowCharts(true), 100);
+    fetchWeeklyAnalysis(); // 데이터 가져오기 실행
+    setTimeout(() => setShowCharts(true), 300); // 차트 애니메이션 실행 타이밍 조절
   }, []);
 
-  // API 데이터 기반 원형 차트 조각 계산
+  // ----------------------------------------------------------
+  // 로딩 중일 때 보여줄 화면 (선택 사항)
+  if (isLoading) {
+    return <div style={{ textAlign: 'center', padding: '50px' }}>데이터를 분석하는 중입니다... 🔄</div>;
+  }
+  // ----------------------------------------------------------
+
   let currentOffset = 0;
   const pieSlices = data.categoryStats.map((cat, index) => {
     const percentDec = cat.percentage / 100;
@@ -78,6 +105,7 @@ const Analysis = () => {
   });
 
   return (
+    // ... 이 아래로는 <div>부터 시작하는 return 안쪽 HTML 구조를 원래 코드 그대로 복붙하시면 됩니다! (수정할 내용 없음) ...
     <div className="analysis-page">
       <div className="analysis-header">
         <h2>{data.weekLabel} 분석</h2>
@@ -219,7 +247,6 @@ const Analysis = () => {
           </div>
         </div>
       </div>
-
     </div>
   );
 };

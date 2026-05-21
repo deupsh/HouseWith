@@ -1,30 +1,70 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import './Account.css';
 import ProfileModal from '../components/ProfileModal';
 import { iconList, colorList } from '../constants/profileOptions';
 
 // 더미 데이터
-const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
-  const [profiles, setProfiles] = useState([
-    { profile_id: 1, nickname: '엄마', profile_type: 0, emoji_id: 0, background_id: 0, custom_profile_image: null },
-    { profile_id: 2, nickname: '아빠', profile_type: 0, emoji_id: 1, background_id: 1, custom_profile_image: null },
-    { profile_id: 3, nickname: '딸', profile_type: 0, emoji_id: 2, background_id: 2, custom_profile_image: null },
-    { profile_id: 4, nickname: '아들', profile_type: 0, emoji_id: 3, background_id: 3, custom_profile_image: null },
-  ]);
+const MOCK_PROFILES = [
+  { profile_id: 1, nickname: '엄마', profile_type: 0, emoji_id: 0, background_id: 0, custom_profile_image: null },
+  { profile_id: 2, nickname: '아빠', profile_type: 0, emoji_id: 1, background_id: 1, custom_profile_image: null },
+  { profile_id: 3, nickname: '딸', profile_type: 0, emoji_id: 2, background_id: 2, custom_profile_image: null },
+  { profile_id: 4, nickname: '아들', profile_type: 0, emoji_id: 3, background_id: 3, custom_profile_image: null },
+];
 
+const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
+  // 1. 초기 상태를 빈 배열로 세팅
+  const [profiles, setProfiles] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const handleModalSubmit = (formData) => {
-    const newMember = {
-      profile_id: Date.now(),
-      ...formData
+
+  // 2. 화면이 켜질 때 백엔드에서 프로필 목록 가져오기 (GET)
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const response = await axios.get('/api/members', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setProfiles(response.data);
+      } catch (error) {
+        console.error("프로필 목록 불러오기 실패:", error);
+        // 서버 미준비 시 임시 더미 데이터로 화면 유지
+        setProfiles(MOCK_PROFILES);
+      }
     };
 
-    setProfiles([...profiles, newMember]);
-    setIsModalOpen(false);
+    fetchProfiles();
+  }, []);
+  
+  // 3. 새 가족 구성원 백엔드에 저장하기 (POST)
+  const handleModalSubmit = async (formData) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.post('/api/members', formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // 백엔드에서 저장 후 돌려준 진짜 데이터(DB에서 생성된 ID 포함)로 화면 갱신
+      setProfiles([...profiles, response.data]);
+      setIsModalOpen(false);
 
-    if (showToast) {
-      showToast("가족 구성원이 추가되었어요! 🎉"); 
+      if (showToast) {
+        showToast("가족 구성원이 추가되었습니다!"); 
+      }
+    } catch (error) {
+      console.error("가족 구성원 추가 실패:", error);
+      
+      // Fallback: 로컬 임시 저장
+      const newMember = {
+        profile_id: Date.now(),
+        ...formData
+      };
+      setProfiles([...profiles, newMember]);
+      setIsModalOpen(false);
+
+      if (showToast) {
+        showToast("가족 구성원이 추가되었습니다! (로컬)"); 
+      }
     }
   };
 
@@ -46,7 +86,6 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
               {profile.profile_type === 1 ? (
                 <img src={profile.custom_profile_image} alt={profile.nickname} className="avatar-img" />
               ) : (
-                // 🌟 수정: 텍스트 이모지(span) 대신 커스텀 아이콘 이미지(img) 렌더링
                 <img 
                   src={iconList[profile.emoji_id]} 
                   alt={`avatar-${profile.emoji_id}`} 

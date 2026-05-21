@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios'; // 🌟 1. 백엔드 통신을 위해 axios 추가
+import axios from 'axios';
 import { Home, Mail, Lock } from 'lucide-react';
 import './Auth.css';
 
@@ -18,16 +18,12 @@ const Login = ({ onLogin }) => {
         password: password
       });
 
-      // 로그인 성공 시 백엔드가 준 Token을 찾아 저장.
+      // 로그인 성공 시 백엔드가 준 Token을 찾아 저장
       const token = response.headers['authorization'] || response.data.token || response.data.accessToken;
       
       if (token) {
-        // 내 브라우저 금고(로컬 스토리지)에 토큰 저장
-        // 아까 Todo.jsx에서 getAuthHeaders()로 이 토큰을 꺼내 썼었죠!
         localStorage.setItem('accessToken', token.replace('Bearer ', '')); 
       }
-
-      // 3. 메인 화면으로 이동
       onLogin(); 
 
     } catch (error) {

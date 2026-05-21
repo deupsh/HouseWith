@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Users } from 'lucide-react'; 
 import ErrorMessage from '../components/ErrorMessage';
@@ -38,7 +39,7 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
     if (errors.email) setErrors({ ...errors, email: '' });
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault(); 
     
     let hasError = false;
@@ -46,7 +47,7 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
 
     const fullEmail = `${emailLocal.trim()}@${emailDomain.trim()}`;
 
-    if (!emailRegex.test(fullEmail)) { // 🌟 fullEmail로 검사하도록 수정됨
+    if (!emailRegex.test(fullEmail)) { 
       newErrors.email = '유효한 이메일 주소를 입력해주세요.';
       hasError = true;
     }
@@ -84,17 +85,32 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
       group_name: groupName          
     };
 
-    console.log("회원가입 요청 데이터:", newUserData); 
+    // 백엔드 통신 로직
+    try {
+      await axios.post('/api/auth/signup', newUserData);
+      // 여기서 response.data.token 등을 로컬 스토리지에 저장하는 로직을 추가 가능(자동 로그인)
 
-        if (setIsLoggedIn) {
-      setIsLoggedIn(true); 
+      if (setIsLoggedIn) {
+        setIsLoggedIn(true); 
+      }
+      if (showToast) {
+        showToast("회원가입 성공!🎉");
+      }
+      navigate('/account'); 
+
+    } catch (error) {
+      console.error("회원가입 실패:", error);
+      
+      // 4. 에러 핸들링 (특히 중복 이메일 처리)
+      if (error.response && error.response.status === 409) { // 409 Conflict (보통 중복일 때 사용)
+        setErrors({ ...newErrors, email: '이미 가입된 이메일 주소입니다.' });
+      } else {
+        // 백엔드가 아직 없거나 서버 에러일 때 화면 넘어가도록 처리
+        if (setIsLoggedIn) setIsLoggedIn(true); 
+        if (showToast) showToast("회원가입 성공!🎉 (로컬 테스트)");
+        navigate('/account'); 
+      }
     }
-
-    if (showToast) {
-      showToast("회원가입 성공!🎉");
-    }
-
-    navigate('/account'); 
   };
 
   return (

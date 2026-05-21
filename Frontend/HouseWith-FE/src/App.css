@@ -1,15 +1,25 @@
 /* 공통 변수 (어디서든 사용 가능) */
 :root {
+  /* 1. 배경 색상 */
   --bg-color: #FDF8F3;
   --card-bg-color: #FFFFFF;
-  --text-primary: #4B3B2E;
-  --text-secondary: #7A695A;
-  --accent-color: #E06C4D;
-  --accent-hover: #C5573C;
-  --border-color: #E6DCD2;
-  --icon-muted: #B2A699;
-  --shadow-sm: 0 2px 4px rgba(75, 59, 46, 0.05);
-  --shadow-md: 0 4px 8px rgba(75, 59, 46, 0.1);
+
+  /* 2. 브랜드 포인트 색상 (세이지 그린) */
+  --accent-color: #7A9D8C;
+  --accent-hover: #6A8C7A;
+  --accent-light: #E6F0E7;
+
+  /* 3. 글씨 색상 */
+  --text-primary: #333333;
+  --text-secondary: #777777;
+
+  /* 4. 선 & 비활성화 색상 */
+  --border-color: #EAEAEA;
+  --icon-muted: #CCCCCC;
+
+  /* 5. 그림자 (입체감) */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 * {
