@@ -19,7 +19,7 @@ import com.housewith.domain.chore.ChoreRecord;
 import com.housewith.dto.chore.ChoreCreateRequest;
 import com.housewith.dto.chore.ChoreResponse;
 import com.housewith.dto.chore.ChoreUpdateRequest;
-import com.housewith.dto.member.ParticipantInfo;
+import com.housewith.dto.account.ParticipantInfo;
 import com.housewith.persistence.account.ProfileRepository;
 import com.housewith.persistence.account.UserRepository;
 import com.housewith.persistence.chore.ChoreParticipantRepository;
