@@ -10,15 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.housewith.persistence.account.UserRepository;
 import com.housewith.domain.account.Profile;
 import com.housewith.domain.account.User;
-import com.housewith.dto.auth.EmailCheckRequest;
-import com.housewith.dto.auth.LoginRequest;
-import com.housewith.dto.auth.LoginResponse;
-import com.housewith.dto.auth.UserCreateRequest;
-import com.housewith.dto.member.SlotCreateRequest;
-import com.housewith.dto.member.SlotItem;
-import com.housewith.dto.member.SlotLoginRequest;
-import com.housewith.dto.member.SlotLoginResponse;
-import com.housewith.dto.member.SlotUpdateRequest;
+import com.housewith.dto.account.EmailCheckRequest;
+import com.housewith.dto.account.LoginRequest;
+import com.housewith.dto.account.LoginResponse;
+import com.housewith.dto.account.SlotCreateRequest;
+import com.housewith.dto.account.SlotItem;
+import com.housewith.dto.account.SlotLoginRequest;
+import com.housewith.dto.account.SlotLoginResponse;
+import com.housewith.dto.account.SlotUpdateRequest;
+import com.housewith.dto.account.UserCreateRequest;
 import com.housewith.persistence.account.ProfileRepository;
 
 

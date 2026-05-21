@@ -1,7 +1,7 @@
 package com.housewith.controller;
 
-import com.housewith.dto.auth.LoginResponse;
-import com.housewith.dto.member.SlotItem;
+import com.housewith.dto.account.LoginResponse;
+import com.housewith.dto.account.SlotItem;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
