@@ -51,4 +51,11 @@ public class Chore extends BaseTimeEntity{
         this.cycleType = cycleType;
         this.cycleValue = cycleValue;
     }
+    
+    // 집안일 정보 수정 비즈니스 로직
+    public void updateChoreDetails(String title, Integer cycleType, String cycleValue) {
+        if (title != null) this.title = title;
+        if (cycleType != null) this.cycleType = cycleType;
+        this.cycleValue = cycleValue; // null 허용 필드
+    }
 }

@@ -1,4 +1,4 @@
-package com.housewith.dto.calendar;
+package com.housewith.dto.schedule;
 
 import java.time.LocalDateTime;
 

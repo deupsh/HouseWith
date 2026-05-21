@@ -1,4 +1,4 @@
-package com.housewith.dto.mood;
+package com.housewith.dto.communication;
 
 import java.time.LocalDateTime;
 

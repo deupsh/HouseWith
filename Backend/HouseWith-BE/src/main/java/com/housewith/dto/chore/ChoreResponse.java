@@ -2,7 +2,7 @@ package com.housewith.dto.chore;
 
 import java.util.List;
 
-import com.housewith.dto.member.ParticipantInfo;
+import com.housewith.dto.account.ParticipantInfo;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

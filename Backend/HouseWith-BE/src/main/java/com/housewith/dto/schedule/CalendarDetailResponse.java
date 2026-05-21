@@ -1,9 +1,9 @@
-package com.housewith.dto.calendar;
+package com.housewith.dto.schedule;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.housewith.dto.member.ParticipantInfo;
+import com.housewith.dto.account.ParticipantInfo;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
