@@ -5,7 +5,7 @@
   gap: 15px;
 }
 
-.section-header { margin-bottom: 7px; }
+.section-header { margin-top: 7px; margin-bottom: 7px; }
 
 .section-header h2 {
   margin: 0 0 5px 0;
