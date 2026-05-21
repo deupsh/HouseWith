@@ -128,10 +128,14 @@ public class AccountService {
         Profile profile = profileRepository.findById(request.getSlotId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로필 슬롯입니다."));
 
-        // 슬롯 핀코드 평문 비교
-        if (!profile.getPinCode().equals(request.getPinCode())) {
-            throw new IllegalArgumentException("핀번호가 일치하지 않습니다.");
-        }
+		// 1. 해당 슬롯에 PIN 번호가 설정되어 있는 경우에만 검증 로직 수행
+		if (profile.getPinCode() != null && !profile.getPinCode().isEmpty()) {
+
+			// 2. 프론트엔드가 PIN을 안 보냈거나, 틀리게 보낸 경우 차단
+			if (request.getPinCode() == null || !profile.getPinCode().equals(request.getPinCode())) {
+				throw new IllegalArgumentException("핀번호가 일치하지 않거나 입력되지 않았습니다.");
+			}
+		}
 
         // 접속 시간 최신화 (더티 체킹)
         profile.updateLastAccessTime(LocalDateTime.now());

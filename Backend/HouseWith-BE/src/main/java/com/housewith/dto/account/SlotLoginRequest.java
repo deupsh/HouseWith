@@ -19,6 +19,5 @@ public class SlotLoginRequest {
     @NotNull(message = "슬롯 ID를 입력해주세요")
     private Long slotId; // 슬롯 PK
 
-    @NotBlank(message = "핀번호를 입력해주세요")
     private String pinCode; // 슬롯 진입용 핀번호
 }

@@ -23,12 +23,11 @@ public class SlotCreateRequest {
     @Size(min = 2, max = 10, message = "닉네임은 2~10자여야 합니다")
     private String nickname; // 닉네임
 
-    @NotBlank(message = "핀번호를 입력해주세요")
     @Pattern(
-        regexp = "^\\d{4,6}$",
-        message = "핀번호는 4~6자리 숫자여야 합니다"
-    )
-    private String pinCode; // 슬롯 진입용 핀번호
+            regexp = "^$|^\\d{6}$", 
+            message = "핀번호는 6자리 숫자여야 합니다."
+        )
+    private String pinCode; // 슬롯 진입용 핀번호 (선택)
 
     // 아이콘+색상 조합 선택 시 사용, 프로필 사진 선택 시 NULL
     private String profileEmoji; // 선택한 이모지 경로

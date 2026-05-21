@@ -33,7 +33,7 @@ public class Profile {
     @Column(nullable = false, length = 10)
     private String nickname;
 
-    @Column(name = "pin_code" , nullable = false, length = 255)
+    @Column(name = "pin_code", length = 255)
     private String pinCode;
 
     @Column(name = "emoji_id")
@@ -87,4 +87,3 @@ public class Profile {
         this.lastAccessTime = now;
     }
 }
-
