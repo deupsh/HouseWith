@@ -1,4 +1,4 @@
-package com.housewith.dto.member;
+package com.housewith.dto.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

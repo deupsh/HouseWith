@@ -1,4 +1,4 @@
-package com.housewith.dto.mood;
+package com.housewith.dto.communication;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

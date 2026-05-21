@@ -1,8 +1,6 @@
-package com.housewith.dto.auth;
+package com.housewith.dto.account;
 
 import java.util.List;
-
-import com.housewith.dto.member.SlotItem;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -19,6 +19,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 작성자: 백승훈
+ * 작성 시간: 2026-05-19
+ * 마지막 수정자: 박성현
+ * 마지막 수정 시간:2026-05-21/0944i
+ * 수정 내용: Update 메소드 추가 (.save → 더티 체킹)
+ * 역할: calendars 테이블의 Entity */
+
 @Entity
 @Table(name = "calendars")
 @Getter
@@ -56,5 +63,16 @@ public class Calendar extends BaseTimeEntity {
         this.startTime = startTime;
         this.endTime = endTime;
         this.uploadedBy = uploadedBy;
+    }
+    
+    // 일정 수정 메소드 (JPA의 .save 공통 메소드가 아닌 Entity에 작성)
+    public void modifyCalendarDetails(String title, String content, LocalDateTime startTime, LocalDateTime endTime) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("일정 제목은 필수입니다.");
+        }
+        this.title = title;
+        this.content = content;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 }
