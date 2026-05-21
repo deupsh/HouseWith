@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,7 +28,8 @@ import lombok.RequiredArgsConstructor;
 /** 작성자: 박성현
  * 작성 시간: 2026-05-21/1005i
  * 마지막 수정자: 박성현
- * 마지막 수정 시간: 2026-05-21/1005i
+ * 마지막 수정 시간: 2026-05-21/1155i
+ * 수정 내용: MockJWT → JWT 토큰 발급으로 코드 수정→
  * 역할: 캘린더 도메인의 HTTP 엔드포인트 매핑 및 유효성 검증 담당 Controller */
 
 @RestController
@@ -40,7 +42,7 @@ public class CalendarController {
     // 5_1 일정 등록 (POST /api/calendars)
     @PostMapping
     public ResponseEntity<Long> createCalendar(
-            @RequestHeader("X-User-Id") Long userId,          // 추후 SecurityContext나 ArgumentResolver로 고도화 가능
+            @AuthenticationPrincipal Long userId,             // JWT 토큰에서 추출된 안전한 PK 바인딩
             @RequestHeader("X-Profile-Id") Long profileId,    // 현재 접속 중인 슬롯 PK
             @Valid @RequestBody CalendarCreateRequest request) {
         
@@ -61,7 +63,7 @@ public class CalendarController {
     // 5_3 달력 기본 조회 (GET /api/calendars?year=2026&month=5)
     @GetMapping
     public ResponseEntity<List<CalendarSummaryResponse>> getCalendarSummary(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal Long userId,             // JWT 토큰에서 추출된 안전한 PK 바인딩
             @RequestParam("year") int year,
             @RequestParam("month") int month) {
         
@@ -73,7 +75,7 @@ public class CalendarController {
     @GetMapping("/{calendarId}")
     public ResponseEntity<CalendarDetailResponse> getCalendarDetail(
             @PathVariable("calendarId") Long calendarId,
-            @RequestHeader("X-User-Id") Long userId) {
+            @AuthenticationPrincipal Long userId) {           // JWT 토큰에서 추출된 안전한 PK 바인딩
         
         CalendarDetailResponse response = calendarService.getCalendarDetail(calendarId, userId);
         return ResponseEntity.ok(response); // 200 조회 성공
