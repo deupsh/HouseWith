@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { iconMap } from '../constants/profileOptions';
 import axios from 'axios';
 import './css/FamilyNote.css';
