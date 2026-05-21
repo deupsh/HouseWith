@@ -1,22 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
+import axios from 'axios';
 import { Calendar, CheckSquare, Image, MessageCircle, BarChart2 } from 'lucide-react';
 import ProfileModal from './ProfileModal';
 import { iconList, colorList } from '../constants/profileOptions';
 import './css/Navigation.css';
 
-// ★ App.jsx에서 currentProfile, setCurrentProfile, showToast를 받아옵니다.
 const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  // 프로필 수정 모달에서 전송된 데이터를 처리하는 함수
-  const handleEditSubmit = (formData) => {
-    setCurrentProfile({
-      ...currentProfile,
-      ...formData
-    });
-    setIsEditOpen(false);
-    if (showToast) showToast("프로필이 수정되었습니다! ✨");
+  const handleEditSubmit = async (formData) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      
+      // 백엔드에 프로필 수정 요청 (PUT 방식)
+      await axios.put('/api/members/profile', formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCurrentProfile({
+        ...currentProfile,
+        ...formData
+      });
+      setIsEditOpen(false);
+      if (showToast) showToast("프로필 수정 완료!");
+
+    } catch (error) {
+      console.error("프로필 수정 실패:", error);
+      
+      // 🚨 서버 통신 실패 시 UI 테스트를 위한 Fallback
+      setCurrentProfile({
+        ...currentProfile,
+        ...formData
+      });
+      setIsEditOpen(false);
+      if (showToast) showToast("프로필 수정 완료! (로컬)");
+    }
   };
 
   return (
@@ -45,7 +63,6 @@ const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
           ) : (
-            // 🌟 수정된 부분: span 태그 대신 img 태그로 변경하여 커스텀 아이콘 렌더링
             <img 
               src={iconList[currentProfile.emoji_id]} 
               alt="avatar" 

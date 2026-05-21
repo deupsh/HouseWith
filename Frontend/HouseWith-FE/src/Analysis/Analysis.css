@@ -2,36 +2,118 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding-top: 30px;
   padding-bottom: 30px;
 }
 
-.analysis-header { margin-bottom: 10px; }
-.analysis-header h2 { font-size: 1.4rem; font-weight: 800; color: #333; margin: 0 0 5px 0; }
-.analysis-date { font-size: 0.95rem; color: #777; font-weight: 600; margin: 0; }
+.analysis-header { 
+  margin-bottom: 10px; 
+  text-align: center;
+}
+.analysis-header h2 { 
+  font-size: 1.4rem; 
+  font-weight: 800; 
+  color: var(--text-primary);
+  margin: 0 0 5px 0; 
+}
+.analysis-date { 
+  font-size: 0.95rem; 
+  color: var(--text-secondary);
+  font-weight: 600; 
+  margin: 0; 
+}
 
 /* AI 분석 카드 섹션 */
-.ai-analysis-section { display: flex; flex-direction: column; gap: 12px; }
-.ai-card { display: flex; gap: 15px; padding: 20px; border-radius: 16px; align-items: flex-start; }
-.ai-card h4 { margin: 0 0 6px 0; font-size: 1rem; font-weight: 800; color: #333; }
-.ai-card p { margin: 0; font-size: 0.9rem; color: #555; line-height: 1.5; word-break: keep-all; }
-
-.ai-icon-wrapper {
-  background: white; width: 36px; height: 36px; border-radius: 50%;
-  display: flex; justify-content: center; align-items: center;
-  flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+.ai-analysis-section { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 14px; /* 간격을 살짝 넓혀서 시원하게 */
 }
-.ai-icon { font-size: 1.1rem; }
 
-.success-card { background-color: #F4F8F6; border: 1px solid #E6F0E7; }
-.warning-card { background-color: #FFF2F2; border: 1px solid #FFE5E5; }
-.tip-card { background-color: #FAFAFA; border: 1px solid #EEEEEE; }
+.ai-card { 
+  display: flex; 
+  gap: 15px; 
+  padding: 22px;
+  border-radius: 20px;
+  align-items: flex-start; 
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+}
+
+.ai-card h4 { 
+  margin: 0 0 6px 0; 
+  font-size: 1.05rem; 
+  font-weight: 800; 
+  color: var(--text-primary);
+}
+
+.ai-card p { 
+  margin: 0; 
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  padding-left: 5px;
+  word-break: keep-all; 
+}
+
+/* 공통 아이콘 래퍼 (크기와 형태만 유지, 색상은 다 뺌) */
+.ai-icon-wrapper {
+  width: 40px; 
+  height: 40px; 
+  border-radius: 50%;
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+  flex-shrink: 0; 
+  /* 🌟 배경색, 테두리, 그림자는 아래에서 개별적으로 줍니다 */
+}
+
+.ai-icon { font-size: 1.2rem; }
+
+/* 1. 가족 참여도*/
+.success-card .ai-icon-wrapper {
+  background-color: #DDEBE3;
+  color: #3B7051;
+}
+
+/* 2. 부담 집중*/
+.warning-card .ai-icon-wrapper {
+  background-color: #F8D6CE;
+  color: #C05139;
+}
+
+/* 3. 추천 사항 */
+.tip-card .ai-icon-wrapper {
+  background-color: #FFF0D4;
+  color: #B27B16;
+}
+
+/* 가족 참여도 */
+.success-card { 
+  background-color: #F0F5F2; /* 쨍한 민트 대신 크림색과 잘 어우러지는 톤다운된 차분한 녹색빛 */
+  border: 1px solid #DCE7E1; 
+}
+
+/* 부담 집중 */
+.warning-card { 
+  background-color: #FDF1EE; /* 눈 아픈 핑크색 대신 은은하고 부드러운 살구/베이지빛 붉은 톤 */
+  border: 1px solid #F3DEC8; 
+}
+
+.tip-card { 
+  background-color: var(--card-bg-color); /* 완전 흰색으로 깔끔하게 깔아줌 */
+  border: 1px solid var(--border-color); 
+}
 
 /* 공통 차트/통계 카드 */
 .chart-card {
-  background-color: #FFFFFF; border-radius: 20px; padding: 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03); border: 1px solid #F5F5F5;
+  background-color: var(--card-bg-color); 
+  border-radius: 20px; 
+  padding: 24px;
+  box-shadow: var(--shadow-sm); 
+  border: 1px solid var(--border-color);
 }
-.chart-card h3 { margin: 0 0 20px 0; font-size: 1.1rem; padding-bottom: 30px; font-weight: 800; color: #444; }
+.chart-card h3 { margin: 0 0 20px 0; font-size: 1.1rem; font-weight: 800; color: #444; }
 
 /* ======================================================= */
 /* 🌟 인터랙티브 막대 그래프 전용 스타일 */
@@ -59,13 +141,13 @@
               filter 0.3s, opacity 0.3s; 
 }
 
-/* 🌟 마우스가 올라간 막대의 변화 (통통해지고 솟아오름) */
+/* 마우스가 올라간 막대 변화*/
 .bar-column.hovered .bar {
   transform: scaleX(1.3) scaleY(1.05); /* 옆으로 살짝 넓어지고, 위로 솟음 */
   filter: drop-shadow(0 -4px 8px rgba(0,0,0,0.15));
 }
 
-/* 🌟 선택되지 않은 나머지 막대들은 흐려짐 */
+/* 선택되지 않은 나머지 막대들은 흐려짐 */
 .bar-column.dimmed .bar {
   opacity: 0.4;
 }
@@ -75,7 +157,7 @@
   top: -22px; 
   left: 50%; 
   transform: translateX(-50%); 
-  font-size: 0.75rem; /* 가독성을 위해 글씨 크기를 아주 살짝 키웠습니다 */
+  font-size: 0.75rem;
   font-weight: 700; 
   color: #666; 
   opacity: 0; 
@@ -91,7 +173,7 @@
   color: #333;
 }
 
-/* 🌟 하단 이름 라벨 강조 효과 */
+/* 하단 이름 라벨 강조 효과 */
 .bar-label { 
   font-size: 0.85rem; font-weight: 700; color: #555; 
   transition: color 0.3s, transform 0.3s;
@@ -130,9 +212,9 @@
     border-radius: 10px; margin: 0; word-break: keep-all; }
 
 /* 인터랙티브 SVG 원형 차트 전용 스타일 */
-.pie-chart-wrapper { display: flex; align-items: center; gap: 30px; 
-    justify-content: center; padding: 10px 0; }
-.interactive-pie { width: 170px; height: 170px; transform: scale(0); 
+.pie-chart-wrapper { display: flex; align-items: center; gap: 10px; 
+    justify-content: center; padding: 5px 0; }
+.interactive-pie { width: 180px; height: 180px; transform: scale(0); padding-left: 10px;
     transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); overflow: visible; }
 .interactive-pie.animate { transform: scale(1); }
 
@@ -142,16 +224,16 @@
 .pie-slice-group.hovered { transform: scale(1.08); }
 .pie-slice-group.hovered .pie-path { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); }
 
-.pie-label-text { font-size: 11px; font-weight: 800; fill: #ffffff; 
+.pie-label-text { font-size: 14px; font-weight: 800; fill: #ffffff; 
     text-anchor: middle; pointer-events: none; text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3); }
-.pie-label-percent { font-size: 10px; font-weight: 700; fill: #ffffff; 
-    text-anchor: middle; pointer-events: none; 
+.pie-label-percent { font-size: 11px; font-weight: 700; fill: #ffffff; 
+    text-anchor: middle; pointer-events: none;
     text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3); }
 
-.pie-legend { display: flex; flex-direction: column; gap: 12px; }
+.pie-legend { display: flex; flex-direction: column; gap: 5px; }
 .legend-item { display: flex; align-items: center; gap: 8px; 
-    padding: 4px 8px; border-radius: 8px; transition: background-color 0.2s; cursor: pointer; }
+    padding: 2px 2px; border-radius: 8px; transition: background-color 0.2s; cursor: pointer; }
 .legend-item.hovered { background-color: #F4F8F6; }
 .legend-color { width: 12px; height: 12px; border-radius: 4px; }
-.legend-name { font-size: 0.9rem; color: #555; font-weight: 600; width: 35px; }
-.legend-percent { font-size: 0.9rem; color: #333; font-weight: 800; }
+.legend-name { font-size: 0.9rem; color: #555; font-weight: 600; width: 45px; word-break: keep-all;}
+.legend-percent { font-size: 0.9rem; color: #333; font-weight: 800; padding-right: 10px;}

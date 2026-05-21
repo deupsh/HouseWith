@@ -8,6 +8,7 @@ import icon5 from '../assets/icon (5).png';
 import icon6 from '../assets/icon (6).png';
 import icon7 from '../assets/icon (7).png';
 import icon8 from '../assets/icon (8).png';
+import icon9 from '../assets/icon (9).png';
 
 export const iconMap = {
   '1': icon1,
@@ -18,9 +19,10 @@ export const iconMap = {
   '6': icon6,
   '7': icon7,
   '8': icon8,
+  '9': icon9,
 };
 
 // 프로필 설정 화면 등에서 '아이콘 목록'을 쭉 띄워야 할 때 쓰기 좋은 배열 버전
-export const iconList = [icon1, icon2, icon3, icon4, icon5, icon6, icon7, icon8];
+export const iconList = [icon1, icon2, icon3, icon4, icon5, icon6, icon7, icon8, icon9];
 
 export const colorList = ['#E8EFEA', '#F6EBE1', '#FDF0EC', '#EAF0EB', '#D0DEE1', '#E9D6C4', '#E4C9B5', '#9BA99E'];

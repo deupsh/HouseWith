@@ -35,7 +35,7 @@
 .input-icon { position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); width: 1.3rem; height: 1.3rem; color: var(--icon-muted); }
 
 .main-button { 
-  margin-top: 10px; width: 60%; padding: 16px; background-color: var(--accent-color); 
+  margin-top: 10px; width: 58%; padding: 13px; background-color: var(--accent-color); 
   color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700;
   cursor: pointer; transition: 0.2s; display: block; margin: 20px auto 0;}
 .main-button:hover { background-color: var(--accent-hover); }
