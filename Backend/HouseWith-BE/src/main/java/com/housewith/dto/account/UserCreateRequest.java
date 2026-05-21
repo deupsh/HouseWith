@@ -1,4 +1,4 @@
-package com.housewith.dto.auth;
+package com.housewith.dto.account;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

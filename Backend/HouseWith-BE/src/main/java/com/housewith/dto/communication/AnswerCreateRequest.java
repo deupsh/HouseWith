@@ -1,4 +1,4 @@
-package com.housewith.dto.question;
+package com.housewith.dto.communication;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
