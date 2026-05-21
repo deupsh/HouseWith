@@ -20,6 +20,7 @@ import com.housewith.dto.account.SlotLoginResponse;
 import com.housewith.dto.account.SlotUpdateRequest;
 import com.housewith.dto.account.UserCreateRequest;
 import com.housewith.persistence.account.ProfileRepository;
+import com.housewith.global.security.JwtTokenProvider;
 
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,8 @@ public class AccountService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
+    // JWT 토큰 발급용 필드 선언
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 이메일 중복 검사
     public boolean checkEmailDuplicate(EmailCheckRequest request) {
@@ -85,11 +88,10 @@ public class AccountService {
                 ))
                 .toList();
 
-        // ***임시*** 프론트엔드 연동을 위한 임시(Mock) JWT 토큰 발급 ***임시***
-        String mockAccessToken = "mock-jwt-token-for-user-" + user.getId();
+        String AccessToken = jwtTokenProvider.createToken(user.getId(), user.getGroupName());
         
         return new LoginResponse(
-                mockAccessToken,
+                AccessToken,
                 "Bearer",
                 user.getId(),
                 user.getGroupName(),
