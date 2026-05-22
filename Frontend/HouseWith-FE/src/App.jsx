@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import Login from './Login/Login';
 import Find from './Login/Find';
@@ -12,6 +12,19 @@ import QnA from './QnA/QnA';
 import Analysis from './Analysis/Analysis';
 import './App.css';
 import Toast from './components/Toast';
+
+const Layout = ({ currentProfile, setCurrentProfile, showToast }) => {
+  return (
+    <>
+      <Navigation 
+        currentProfile={currentProfile} 
+        setCurrentProfile={setCurrentProfile} 
+        showToast={showToast} 
+      />
+      <Outlet />
+    </>
+  );
+};
 
 function App() {
   // 로그인 상태
@@ -34,18 +47,11 @@ function App() {
 
   return (
     <BrowserRouter>
-    {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
+      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
       <div className="app-container">
-        {isLoggedIn && currentProfile && (
-          <Navigation 
-            currentProfile={currentProfile} 
-            setCurrentProfile={setCurrentProfile} 
-            showToast={showToast} 
-          />
-        )}
-
-        <div className="page-content" style={{ paddingTop: (isLoggedIn && currentProfile) ? '180px' : '40px' }}>
+        <div className="page-content">
           <Routes>
+            {/* 로그인 안 된 경우 */}
             {!isLoggedIn ? (
               <>
                 <Route path="/login" element={<Login onLogin={() => setIsLoggedIn(true)} showToast={showToast} />} />
@@ -55,31 +61,38 @@ function App() {
               </>
             ) : 
 
+            /* 로그인 되었지만 프로필 선택 안 된 경우 */
             !currentProfile ? (
               <>
-                <Route 
-                  path="/select-profile" 
-                  element={
-                    <Account 
-                      onSelect={(profile) => setCurrentProfile(profile)} 
-                      showToast={showToast} 
-                    />
-                  } 
-                />
-                <Route path="*" element={<Navigate to="/select-profile" />} />
+                <Route path="/account" element={
+                  <Account onSelect={(profile) => setCurrentProfile(profile)} showToast={showToast} />
+                } />
+                <Route path="*" element={<Navigate to="/account" />} />
               </>
             ) :
 
+            /* 로그인이 되어있고 프로필도 선택된 경우 */
             (
               <>
-                <Route path="/calendar" element={<Calendar />} />
-                <Route path="/todo" element={<Todo />} />
-                <Route path="/gallery" element={<Gallery />} />
-                <Route path="/qna" element={<QnA />} />
-                <Route path="/analysis" element={<Analysis />} />
-                <Route path="*" element={<Navigate to="/calendar" />} />
-              </>
-            )}
+              {/* 네비게이션 X */}
+              <Route path="/account" element={
+              <Account 
+                onSelect={(profile) => setCurrentProfile(profile)} 
+                showToast={showToast} 
+              />
+            } />
+
+              {/* 네비게이션 O */}
+              <Route element={<Layout currentProfile={currentProfile} setCurrentProfile={setCurrentProfile} showToast={showToast} />}>
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/todo" element={<Todo />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/qna" element={<QnA />} />
+              <Route path="/analysis" element={<Analysis />} />
+              <Route path="*" element={<Navigate to="/calendar" />} />
+            </Route>
+            </>
+          )}
           </Routes>
         </div>
       </div>

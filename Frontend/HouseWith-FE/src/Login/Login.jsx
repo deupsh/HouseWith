@@ -38,59 +38,61 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="top-section">
-        <div className="icon-wrapper">
-          <Home className="layout-icon" />
-        </div>
-        <h1 className="layout-title">HouseWith</h1>
-        <p className="layout-description">가족과 함께하는 따뜻한 공간</p>
-      </div>
-      
-      <form className="auth-form" onSubmit={handleLoginSubmit}>
-        <div className="form-field">
-          <label htmlFor="email">이메일</label>
-          <div className="input-with-icon">
-            <Mail className="input-icon" />
-            <input 
-              type="email" 
-              id="email" 
-              placeholder="이메일을 입력해주세요"
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              required
-            />
+    <div className="auth-wrapper"> 
+      <div className="auth-container">
+        <div className="top-section">
+          <div className="icon-wrapper">
+            <Home className="layout-icon" />
           </div>
+          <h1 className="layout-title">HouseWith</h1>
+          <p className="layout-description">가족과 함께하는 따뜻한 공간</p>
         </div>
-        <div className="form-field">
-          <label htmlFor="password">비밀번호</label>
-          <div className="input-with-icon password-input">
-            <Lock className="input-icon" />
-            <input 
-              type="password" 
-              id="password" 
-              placeholder="비밀번호를 입력해주세요"
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required
-            />
+        
+        <form className="auth-form" onSubmit={handleLoginSubmit}>
+          <div className="form-field">
+            <label htmlFor="email">이메일</label>
+            <div className="input-with-icon">
+              <Mail className="input-icon" />
+              <input 
+                type="email" 
+                id="email" 
+                placeholder="이메일을 입력해주세요"
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required
+              />
+            </div>
           </div>
-        </div>
+          <div className="form-field">
+            <label htmlFor="password">비밀번호</label>
+            <div className="input-with-icon password-input">
+              <Lock className="input-icon" />
+              <input 
+                type="password" 
+                id="password" 
+                placeholder="비밀번호를 입력해주세요"
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required
+              />
+            </div>
+          </div>
 
-        {errorMessage && (
-          <div style={{ color: '#FF6B6B', fontSize: '0.85rem', textAlign: 'center', marginTop: '-5px', marginBottom: '10px', fontWeight: 'bold' }}>
-            {errorMessage}
-          </div>
-        )}
+          {errorMessage && (
+            <div style={{ color: '#FF6B6B', fontSize: '0.85rem', textAlign: 'center', marginTop: '-5px', marginBottom: '10px', fontWeight: 'bold' }}>
+              {errorMessage}
+            </div>
+          )}
 
-        <button type="submit" className="main-button login-button">로그인</button>
-      </form>
-      
-      <div className="bottom-links">
-        <a href="/find" className="accent-link">아이디 / 비밀번호 찾기</a>
-        <p className="signup-text">
-          아직 계정이 없으신가요? <a href="/signup" className="accent-link signup-link">회원가입</a>
-        </p>
+          <button type="submit" className="main-button login-button">로그인</button>
+        </form>
+        
+        <div className="bottom-links">
+          <a href="/find" className="accent-link">아이디 / 비밀번호 찾기</a>
+          <p className="signup-text">
+            아직 계정이 없으신가요? <a href="/signup" className="accent-link signup-link">회원가입</a>
+          </p>
+        </div>
       </div>
     </div>
   );

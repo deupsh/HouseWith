@@ -1,33 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Camera, Check, Lock, LogOut, Trash2, Bell, Shield, Info } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; // 🌟 라우터 이동을 위한 임포트 추가
+import { X, Camera, Check, Lock, LogOut, Bell, Shield, Info } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ErrorMessage from './ErrorMessage';
+import CardModal from './CardModal';
 import { iconList, colorList } from '../constants/profileOptions'; 
 
 const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit }) => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   
-  // 🌟 상단 메인 탭 상태 ('edit' = 프로필 수정, 'settings' = 설정)
   const [mainTab, setMainTab] = useState('edit');
-
-  // 폼 입력 상태들
   const [activeTab, setActiveTab] = useState(0); 
   const [nickname, setNickname] = useState('');
   const [pinCode, setPinCode] = useState(''); 
   const [emojiId, setEmojiId] = useState(0);
   const [backgroundId, setBackgroundId] = useState(0);
   const [customImage, setCustomImage] = useState(null);
-
-  // 🌟 추가 설정 상태 (알림 토글 등)
   const [isPushEnabled, setIsPushEnabled] = useState(true);
+
+  // 로그아웃 확인 모달 상태 추가
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const [errors, setErrors] = useState({ nickname: '', pin: '', photo: '' });
 
-  // 모달이 열릴 때 mode(생성/수정)에 따라 입력창 초기값 세팅
   useEffect(() => {
     if (isOpen) {
-      setMainTab('edit'); // 모달이 열릴 때마다 기본 탭을 '프로필 수정'으로 초기화
+      setMainTab('edit');
       if (mode === 'edit' && initialData) {
         setActiveTab(initialData.profile_type);
         setNickname(initialData.nickname);
@@ -95,47 +93,24 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
     });
   };
 
-  // 🌟 로그아웃 처리 함수
-  const handleLogout = () => {
-    if (window.confirm('로그아웃 하시겠습니까?')) {
-      localStorage.removeItem('accessToken');
-      onClose();
-      navigate('/login'); 
-      window.location.reload(); 
-    }
-  };
-
-  // 🌟 회원탈퇴 처리 함수
-  const handleDeleteAccount = async () => {
-    if (window.confirm('정말로 탈퇴하시겠습니까? 우리 가족의 모든 기록에서 제외되며 복구할 수 없습니다.')) {
-      try {
-        // 추후 API 연동 시 아래 주석 해제
-        // const token = localStorage.getItem('accessToken');
-        // await axios.delete('/api/members/me', { headers: { Authorization: `Bearer ${token}` } });
-        
-        alert('회원탈퇴가 완료되었습니다. 이용해주셔서 감사합니다.');
-        localStorage.removeItem('accessToken');
-        onClose();
-        navigate('/login');
-        window.location.reload();
-      } catch (error) {
-        console.error('탈퇴 실패:', error);
-        alert('탈퇴 처리 중 오류가 발생했습니다.');
-      }
-    }
+  // 로그아웃 실행 함수
+  const confirmLogout = () => {
+    localStorage.removeItem('accessToken');
+    onClose();
+    setIsLogoutConfirmOpen(false);
+    navigate('/login'); 
+    window.location.reload(); 
   };
 
   return (
     <div className="modal-overlay">
       <div className="modal-content" style={{ padding: '0', overflow: 'hidden' }}>
         
-        {/* 🌟 모달 헤더 (타이틀 변경) */}
         <div className="modal-header" style={{ padding: '20px 20px 0 20px', borderBottom: 'none' }}>
           <h3 style={{ fontSize: '1.4rem' }}>{mode === 'create' ? '프로필 만들기' : '내 정보'}</h3>
           <button className="close-btn" onClick={onClose}><X /></button>
         </div>
 
-        {/* 🌟 수정 모드일 때만 메인 탭 2개 렌더링 */}
         {mode === 'edit' && (
           <div className="main-tabs-container" style={{ display: 'flex', borderBottom: '1px solid #eee', marginTop: '15px' }}>
             <button 
@@ -155,9 +130,6 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
 
         <div className="modal-body" style={{ padding: '20px', maxHeight: '60vh', overflowY: 'auto' }}>
           
-          {/* =======================================
-              [탭 1] 프로필 수정 내용
-          ======================================= */}
           {mainTab === 'edit' && (
             <div className="edit-tab-content fade-in">
               <div className="input-group">
@@ -168,7 +140,7 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
                     setNickname(e.target.value);
                     if (errors.nickname) setErrors({ ...errors, nickname: '' });
                   }} 
-                  maxLength={10} className={errors.nickname ? 'input-error' : ''} 
+                  maxLength={10} 
                 />
                 <ErrorMessage message={errors.nickname} />
               </div>
@@ -184,7 +156,7 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
                         setPinCode(e.target.value.replace(/[^0-9]/g, ''));
                         if (errors.pin) setErrors({ ...errors, pin: '' });
                       }} 
-                      maxLength={6} className={errors.pin ? 'input-error' : ''} 
+                      maxLength={6} 
                     />
                   </div>
                   <ErrorMessage message={errors.pin} />
@@ -225,7 +197,7 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
 
                   {activeTab === 1 && (
                     <div className="type-content">
-                      <div className={`photo-upload-zone-card ${errors.photo ? 'box-error' : ''}`} onClick={() => fileInputRef.current.click()}>
+                      <div className="photo-upload-zone-card" onClick={() => fileInputRef.current.click()}>
                         <input type="file" ref={fileInputRef} hidden onChange={handlePhotoUpload} accept="image/*" />
                         {customImage ? (
                           <img src={customImage} alt="upload preview" className="uploaded-preview-img" />
@@ -258,9 +230,6 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
             </div>
           )}
 
-          {/* =======================================
-              [탭 2] 설정 내용 (이메일, 로그아웃, 탈퇴 등)
-          ======================================= */}
           {mainTab === 'settings' && (
             <div className="settings-tab-content fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
               
@@ -301,20 +270,13 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
                 <h4 style={{ fontSize: '0.9rem', color: '#888', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Info size={16} /> 계정 관리
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <button 
-                    onClick={handleLogout}
-                    style={{ width: '100%', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#fff', border: '1px solid #ddd', borderRadius: '12px', color: '#333', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s' }}
-                  >
-                    <LogOut size={18} /> 로그아웃
-                  </button>
-                  <button 
-                    onClick={handleDeleteAccount}
-                    style={{ width: '100%', padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#FFF5F5', border: '1px solid #FFE3E3', borderRadius: '12px', color: '#E03131', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
-                  >
-                    <Trash2 size={18} /> 회원탈퇴
-                  </button>
-                </div>
+                <button 
+                  onClick={() => setIsLogoutConfirmOpen(true)} // 로그아웃 모달 띄우기
+                  className="btn btn-secondary"
+                  style={{ width: '100%', padding: '15px', borderRadius: '12px' }}
+                >
+                  <LogOut size={18} /> 로그아웃
+                </button>
               </section>
 
               <div style={{ textAlign: 'center', color: '#bbb', fontSize: '0.8rem', marginTop: '10px' }}>
@@ -325,7 +287,6 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
 
         </div>
 
-        {/* 🌟 설정 탭일 때는 하단의 확인/취소 버튼 숨김 처리 */}
         {mainTab === 'edit' && (
           <div className="modal-footer" style={{ padding: '20px', borderTop: '1px solid #eee' }}>
             <button className="btn-cancel" onClick={onClose} style={{ flex: 1 }}>취소</button>
@@ -335,6 +296,31 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
           </div>
         )}
       </div>
+
+      {/* 로그아웃 확인용 공통 카드 모달 */}
+      <CardModal
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        title="로그아웃"
+      >
+        <p className="confirm-desc text-center">정말 로그아웃 하시겠습니까?</p>
+        <div className="flex-group">
+          <button 
+            className="btn btn-secondary flex-1" 
+            onClick={() => setIsLogoutConfirmOpen(false)}
+          >
+            취소
+          </button>
+          <button 
+            className="btn btn-danger-solid flex-1" 
+            onClick={confirmLogout}
+            style={{ backgroundColor: '#FF6B6B' }}
+          >
+            로그아웃
+          </button>
+        </div>
+      </CardModal>
+
     </div>
   );
 };
