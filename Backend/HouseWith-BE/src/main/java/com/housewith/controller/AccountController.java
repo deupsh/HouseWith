@@ -19,6 +19,7 @@ import com.housewith.dto.account.LoginRequest;
 import com.housewith.dto.account.LoginResponse;
 import com.housewith.dto.account.PasswordVerifyRequest;
 import com.housewith.dto.account.SlotCreateRequest;
+import com.housewith.dto.account.SlotItem;
 import com.housewith.dto.account.SlotLoginRequest;
 import com.housewith.dto.account.SlotLoginResponse;
 import com.housewith.dto.account.SlotPinUpdateRequest;
@@ -29,11 +30,11 @@ import com.housewith.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-/** 작성자: 박성현
- * 작성 시간: 2026-05-19/1444i
+/** 작성자: 백승훈
+ * 작성 시간: 2026-05-21
  * 마지막 수정자: 박성현
- * 마지막 수정 시간:2026-05-19/1444i
- * 수정 내용: 
+ * 마지막 수정 시간: 2026-05-12/1430i
+ * 수정 내용: 가족 구성원 반환 시 PK만 반환 → SlotItem DTO 반환 (박성현 - 2026-05-12/1430i) 
  * 역할: 회원 가입 시 이메일 중복 확인용 DTO */
 
 @RestController
@@ -69,7 +70,7 @@ public class AccountController {
 
     // 가족 구성원 슬롯 생성
     @PostMapping(value = "/slots", consumes = "multipart/form-data")
-    public ResponseEntity<Long> createSlot(
+    public ResponseEntity<SlotItem> createSlot(
             @AuthenticationPrincipal Long userId, 
             @Valid @ModelAttribute SlotCreateRequest request) {
         
@@ -80,8 +81,8 @@ public class AccountController {
             uploadedImageUrl = "https://housewith-s3-bucket.s3.amazonaws.com/profiles/" + file.getOriginalFilename();
         }
 
-        Long slotId = accountService.createSlot(userId, request, uploadedImageUrl);
-        return ResponseEntity.status(HttpStatus.CREATED).body(slotId); // 201 Created
+        SlotItem createSlot = accountService.createSlot(userId, request, uploadedImageUrl);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createSlot); // 201 Created
     }
 
     // 가족 슬롯 접속

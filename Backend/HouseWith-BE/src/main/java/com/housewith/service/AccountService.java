@@ -28,9 +28,10 @@ import lombok.RequiredArgsConstructor;
 /** 작성자: 백승훈
  * 작성 시간: 2026-05-20/1641i
  * 마지막 수정자: 박성현
- * 마지막 수정 시간: 2026-05-22/1111i
+ * 마지막 수정 시간: 2026-05-22/1428i
  * 수정 내용: 슬롯 삭제, 회원 탈퇴 메소드 추가 (박성현 - 2026-05-22/0915i)
  * PIN 번호 수정 분리 (박성현 - 2026-05-22/1111i)
+ * 슬롯 정보 Resopnse가 PK만 반환 → SlotItem DTO 반환 (박성현 - 2026-05-22/1428i)S
  * 역할: 가족 그룹 계정의 보안 인증(회원가입/로그인)과 개별 구성원 슬롯의 전체 생명주기(생성/수정/접속/삭제)를 총괄하는 서비스 */
 
 @Service
@@ -109,7 +110,7 @@ public class AccountService {
 
     // 가족 구성원 슬롯
     @Transactional
-    public Long createSlot(Long userId, SlotCreateRequest request, String uploadedImageUrl) {
+    public SlotItem createSlot(Long userId, SlotCreateRequest request, String uploadedImageUrl) {
         long currentSlotCount = profileRepository.countByUser_Id(userId);
         if (currentSlotCount >= 10) {
             throw new IllegalStateException("가족 슬롯은 최대 10개까지만 생성할 수 있습니다.");
@@ -127,7 +128,16 @@ public class AccountService {
                 .customProfileImage(uploadedImageUrl)
                 .build();
 
-        return profileRepository.save(profile).getId();
+        Profile savedProfile = profileRepository.save(profile);
+
+        // API 명세서에 맞게 SlotItem DTO로 변환하여 리턴
+        return new SlotItem(
+                savedProfile.getId(),
+                savedProfile.getNickname(),
+                savedProfile.getEmojiId(),
+                savedProfile.getBackgroundId(),
+                savedProfile.getCustomProfileImage()
+        );
     }
 
     // 가족 슬롯 접속 (핀번호 로그인)

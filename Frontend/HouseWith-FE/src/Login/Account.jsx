@@ -14,8 +14,9 @@ const MOCK_PROFILES = [
   { profile_id: 4, nickname: '아들', profile_type: 0, emoji_id: 3, background_id: 3, custom_profile_image: null, has_pin: true },
 ];
 
-const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
+const Account = ({ onSelect, showToast}) => {
   const [profiles, setProfiles] = useState([]);
+  const [groupName, setGroupName] = useState('우리 가족'); // 로딩 전 기본값
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 계정 관리(삭제) 모드 상태
@@ -28,15 +29,27 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
 
   // 화면이 켜질 때 백엔드에서 프로필 목록 가져오기
   useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        const response = await axios.get('/api/members', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setProfiles(response.data);
-      } catch (error) {
-        console.error("프로필 목록 불러오기 실패:", error);
+    // 신규 유저 알림이가 있다면 모달을 열고, 알림이는 파기 (새로고침 시 계속 열림 방지)
+    if (sessionStorage.getItem('isNewUser') === 'true') {
+      setIsModalOpen(true);
+      sessionStorage.removeItem('isNewUser');
+    }
+
+    // 로컬스토리지에서 로그인할 때 저장한 그룹명 꺼내오기
+    const savedGroupName = localStorage.getItem('groupName');
+    if (savedGroupName) {
+      setGroupName(savedGroupName);
+    }
+
+    const fetchProfiles = () => {
+      // 1. 로그인할 때 저장해둔 진짜 가족 데이터 꺼내기
+      const savedSlots = localStorage.getItem('slots');
+      
+      if (savedSlots) {
+        // 2. 저장된 데이터가 있으면 화면에 진짜 데이터를 세팅
+        setProfiles(JSON.parse(savedSlots));
+      } else {
+        // 혹시 로컬스토리지에 데이터가 비어있을 때만 임시로 더미 표시
         setProfiles(MOCK_PROFILES);
       }
     };
@@ -112,11 +125,43 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
   const handleModalSubmit = async (formData) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.post('/api/members', formData, {
-        headers: { Authorization: `Bearer ${token}` }
+      
+      // 1. FormData 객체 생성
+      const submitData = new FormData();
+      
+      // 2. 백엔드 DTO 변수명에 맞춰서 데이터 넣기
+      submitData.append('nickname', formData.nickname);
+      submitData.append('profileEmoji', formData.emoji_id);
+      submitData.append('profileBackground', formData.background_id);
+      
+      // PIN 번호와 이미지는 있을 때만 추가
+      if (formData.pin_code) {
+        submitData.append('pinCode', formData.pin_code);
+      }
+      if (formData.profileImage) {
+        submitData.append('profileImage', formData.profileImage); 
+      }
+
+      // 3. API 주소(/api/slots)와 헤더(multipart/form-data) 설정
+      const response = await axios.post('/api/slots', submitData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data' // 파일 업로드를 위한 필수 설정
+        }
       });
       
-      setProfiles([...profiles, response.data]);
+      // 4. 화면 업데이트 (백엔드에서 리턴 받은 객체)
+      const newMember = {
+        ...response.data, 
+        has_pin: !!formData.pin_code 
+      };
+
+      const updatedProfiles = [...profiles, newMember];
+      setProfiles(updatedProfiles);
+      
+      // 5. 새로고침 시에도 유지되도록 로컬 스토리지 데이터 동기화
+      localStorage.setItem('slots', JSON.stringify(updatedProfiles));
+
       setIsModalOpen(false);
       if (showToast) showToast("가족 구성원이 추가되었습니다!"); 
     } catch (error) {

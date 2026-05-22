@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import { Home, Mail, Lock } from 'lucide-react';
 import './Auth.css';
 
@@ -13,16 +14,18 @@ const Login = ({ onLogin }) => {
     setErrorMessage('');
 
     try {
-      const response = await axios.post('/api/login', {
+      const response = await axios.post('/api/auth/login', {
         email: email,
         password: password
       });
 
-      // 로그인 성공 시 백엔드가 준 Token을 찾아 저장
-      const token = response.headers['authorization'] || response.data.token || response.data.accessToken;
+      // 로그인 성공 시 백엔드가 준 토큰, 그룹명, 슬롯 List를 찾아 저장
+      const { accessToken, groupName, slots } = response.data;
       
-      if (token) {
-        localStorage.setItem('accessToken', token.replace('Bearer ', '')); 
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken.replace('Bearer ', '')); 
+        localStorage.setItem('groupName', groupName); 
+        localStorage.setItem('slots', JSON.stringify(slots)); 
       }
       onLogin(); 
 
@@ -87,9 +90,9 @@ const Login = ({ onLogin }) => {
       </form>
       
       <div className="bottom-links">
-        <a href="/find" className="accent-link">아이디 / 비밀번호 찾기</a>
+        <Link to="/find" className="accent-link">아이디 / 비밀번호 찾기</Link>
         <p className="signup-text">
-          아직 계정이 없으신가요? <a href="/signup" className="accent-link signup-link">회원가입</a>
+          아직 계정이 없으신가요? <Link to="/signup" className="accent-link signup-link">회원가입</Link>
         </p>
       </div>
     </div>
