@@ -86,7 +86,7 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
     };
 
     try {
-      await axios.post('/api/auth/signup', newUserData);
+      await axios.post('/api/auth/register', newUserData);
 
       // 1. 가입 성공 직후, 방금 입력한 정보로 '자동 로그인' 수행
       const loginResponse = await axios.post('/api/auth/login', {
@@ -109,9 +109,8 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
       if (showToast) {
         showToast("회원가입 성공!🎉");
       }
-      
       // 4. 토큰을 들고 Account로 이동 (Account에서 신규 유저 알림이 확인 후, 프로필 생성 모달 띄워줌)
-      navigate('/account');
+      navigate('/account'); 
 
     } catch (error) {
       console.error("회원가입 실패:", error);

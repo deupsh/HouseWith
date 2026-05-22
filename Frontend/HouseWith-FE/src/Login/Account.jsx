@@ -16,9 +16,10 @@ const MOCK_PROFILES = [
   { profile_id: 4, nickname: '아들', profile_type: 0, emoji_id: 3, background_id: 3, custom_profile_image: null, has_pin: true },
 ];
 
-const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
+const Account = ({ onSelect, showToast}) => {
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState([]);
+  const [groupName, setGroupName] = useState('');
   const [mode, setMode] = useState('normal'); 
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,16 +40,31 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
 
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
+  // 화면이 켜질 때 실행
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await axios.get('/api/members', {
+        // 명세 3번 '슬롯' 섹션에 맞게 /api/slots 호출
+        const response = await axios.get('/api/slots', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setProfiles(response.data);
+        
+        // SlotItem DTO 명세에 맞춘 매핑
+        const mappedProfiles = response.data.map(slot => ({
+          profile_id: slot.slotId,
+          nickname: slot.nickname,
+          profile_type: slot.customProfileImage ? 1 : 0,
+          emoji_id: slot.profileEmoji,
+          background_id: slot.profileBackground,
+          custom_profile_image: slot.customProfileImage,
+          has_pin: slot.pinCode != null // 명세상 pinCode 필드가 있음
+        }));
+        setProfiles(mappedProfiles);
+        const savedGroupName = localStorage.getItem('groupName');
+        if (savedGroupName) setGroupName(savedGroupName);
       } catch (error) {
-        setProfiles(MOCK_PROFILES);
+        console.error("슬롯 조회 실패", error);
       }
     };
     fetchProfiles();
@@ -70,6 +86,7 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
         setPinInput('');
         setPinError('');
       } else {
+        localStorage.setItem('currentSlotId', profile.profile_id);
         onSelect(profile);
         navigate('/calendar');
       }
@@ -79,7 +96,7 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
   const confirmDeleteProfile = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.delete(`/api/members/${profileToDelete.id}`, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.delete(`/api/slots/${profileToDelete.id}`, { headers: { Authorization: `Bearer ${token}` }});
       setProfiles(profiles.filter(p => p.profile_id !== profileToDelete.id));
       if (showToast) showToast("계정이 삭제되었습니다.");
     } catch (error) {
@@ -97,7 +114,11 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
     if (pinInput.length !== 6) return setPinError('PIN 번호 6자리를 모두 입력해주세요.');
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.post(`/api/members/${pinModalProfile.profile_id}/verify-pin`, { pin_code: pinInput }, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.post(`/api/slots/login`, {
+        slotId: pinModalProfile.profile_id,
+        pinCode: pinInput
+      }, { headers: { Authorization: `Bearer ${token}` }});
+      localStorage.setItem('currentSlotId', pinModalProfile.profile_id);
       setPinModalProfile(null);
       onSelect(pinModalProfile);
       navigate('/calendar');
@@ -172,42 +193,39 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
   const handleModalSubmit = async (formData) => {
     try {
       const token = localStorage.getItem('accessToken');
-      
-      // 1. FormData 객체 생성
       const submitData = new FormData();
       
-      // 2. 백엔드 DTO 변수명에 맞춰서 데이터 넣기
       submitData.append('nickname', formData.nickname);
+      
+      submitData.append('pinCode', formData.pin_code || ''); 
+      
       submitData.append('profileEmoji', formData.emoji_id);
       submitData.append('profileBackground', formData.background_id);
-      
-      // PIN 번호와 이미지는 있을 때만 추가
-      if (formData.pin_code) {
-        submitData.append('pinCode', formData.pin_code);
-      }
-      if (formData.profileImage) {
-        submitData.append('profileImage', formData.profileImage); 
-      }
+      if (formData.profileImage) submitData.append('profileImage', formData.profileImage);
 
-      // 3. API 주소(/api/slots)와 헤더(multipart/form-data) 설정
       const response = await axios.post('/api/slots', submitData, {
         headers: { 
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data' // 파일 업로드를 위한 필수 설정
+          'Content-Type': undefined 
         }
       });
-      setProfiles([...profiles, response.data]);
+
+      // 명세의 SlotItem 구조로 상태 업데이트
+      const newMember = {
+        profile_id: response.data.slotId,
+        nickname: response.data.nickname,
+        profile_type: response.data.customProfileImage ? 1 : 0,
+        emoji_id: response.data.profileEmoji,
+        background_id: response.data.profileBackground,
+        custom_profile_image: response.data.customProfileImage,
+        has_pin: !!formData.pin_code // 핀코드가 실제로 입력되었을 때만 true
+      };
+
+      setProfiles([...profiles, newMember]);
       setIsModalOpen(false);
       if (showToast) showToast("가족 구성원이 추가되었습니다!"); 
     } catch (error) {
-      const newMember = {
-        profile_id: Date.now(),
-        ...formData,
-        has_pin: formData.pin_code ? true : false
-      };
-      setProfiles([...profiles, newMember]);
-      setIsModalOpen(false);
-      if (showToast) showToast("가족 구성원이 추가되었습니다! (로컬)"); 
+      console.error("슬롯 생성 실패:", error);
     }
   };
 

@@ -39,9 +39,19 @@ const Calendar = ({ showToast }) => {
   const fetchEvents = async (fetchYear, fetchMonth) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get(`/api/calendar/events?year=${fetchYear}&month=${fetchMonth}`, {
+      const response = await axios.get(`/api/calendars?year=${fetchYear}&month=${fetchMonth}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
+      const colors = ['#E6F0E7', '#FFF3CD', '#FDECE8', '#E3F2FD', '#F3E5F5'];
+      const mappedEvents = response.data.map((event, index) => ({
+        id: event.calendarId, 
+        title: event.title,
+        startDate: event.startDateTime, 
+        endDate: event.endDateTime,
+        color: colors[index % colors.length] 
+      }));
+      
       setEvents(response.data);
     } catch (error) {
       console.error("일정 불러오기 실패:", error);
@@ -73,18 +83,34 @@ const Calendar = ({ showToast }) => {
       const token = localStorage.getItem('accessToken');
       const headers = { Authorization: `Bearer ${token}` };
 
-      if (modalMode === 'create') {
-        const colors = ['#E6F0E7', '#FFF3CD', '#FDECE8', '#E3F2FD', '#F3E5F5'];
-        const randomColor = colors[events.length % colors.length];
-        const newEventPayload = { ...eventData, color: randomColor };
+      // 서버 Request DTO 스펙에 맞춘 페이로드 생성
+      const backendPayload = {
+        title: eventData.title,
+        startDateTime: eventData.startDate,
+        endDateTime: eventData.endDate,
+        memo: eventData.memo || '',
+        participantSlotIds: eventData.participantSlotIds || [] 
+      };
 
-        const response = await axios.post('/api/calendar/events', newEventPayload, { headers });
-        setEvents([...events, response.data]); 
+      if (modalMode === 'create') {
+        // 주소 변경
+        const response = await axios.post('/api/calendars', backendPayload, { headers });
+        const randomColor = ['#E6F0E7', '#FFF3CD', '#FDECE8', '#E3F2FD', '#F3E5F5'][events.length % 5];
+        
+        // Response 매핑해서 화면에 추가
+        setEvents([...events, { 
+          id: response.data.calendarId, 
+          title: response.data.title, 
+          startDate: response.data.startDateTime, 
+          endDate: response.data.endDateTime, 
+          color: randomColor 
+        }]); 
         if (showToast) showToast("새 일정이 등록되었어요! 🗓️");
 
       } else if (modalMode === 'edit') {
-        const response = await axios.put(`/api/calendar/events/${eventData.id}`, eventData, { headers });
-        setEvents(events.map(e => e.id === eventData.id ? response.data : e));
+        // 주소 변경
+        await axios.put(`/api/calendars/${eventData.id}`, backendPayload, { headers });
+        setEvents(events.map(e => e.id === eventData.id ? { ...e, ...eventData } : e));
         if (showToast) showToast("일정 수정이 완료되었습니다.");
       }
       setIsModalOpen(false);
@@ -108,7 +134,7 @@ const Calendar = ({ showToast }) => {
   const handleEventDelete = async (eventId) => {
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.delete(`/api/calendar/events/${eventId}`, {
+      await axios.delete(`/api/calendars/${eventId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

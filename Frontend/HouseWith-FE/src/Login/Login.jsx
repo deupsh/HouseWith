@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
 import { Home, Mail, Lock } from 'lucide-react';
 import './Auth.css';
 
@@ -19,13 +18,14 @@ const Login = ({ onLogin }) => {
         password: password
       });
 
-      // 로그인 성공 시 백엔드가 준 토큰, 그룹명, 슬롯 List를 찾아 저장
       const { accessToken, groupName, slots } = response.data;
       
+      // 데이터를 모두 localStorage에 저장
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken.replace('Bearer ', '')); 
-        localStorage.setItem('groupName', groupName); 
-        localStorage.setItem('slots', JSON.stringify(slots)); 
+      }
+      if (groupName) {
+        localStorage.setItem('groupName', groupName);
       }
       onLogin(); 
 

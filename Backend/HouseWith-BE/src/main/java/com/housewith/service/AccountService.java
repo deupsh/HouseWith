@@ -107,6 +107,20 @@ public class AccountService {
                 slots
         );
     }
+    
+    // 단순 슬롯 조회 (로그인과 연관 X)
+    public List<SlotItem> getSlots(Long userId) {
+        List<Profile> profiles = profileRepository.findByUser_Id(userId);
+        return profiles.stream()
+                .map(p -> new SlotItem(
+                        p.getId(),
+                        p.getNickname(),
+                        p.getEmojiId(),
+                        p.getBackgroundId(),
+                        p.getCustomProfileImage()
+                ))
+                .toList();
+    }
 
     // 가족 구성원 슬롯
     @Transactional
