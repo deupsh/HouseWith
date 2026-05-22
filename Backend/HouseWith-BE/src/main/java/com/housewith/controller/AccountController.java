@@ -3,7 +3,9 @@ package com.housewith.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,15 +17,24 @@ import org.springframework.web.multipart.MultipartFile;
 import com.housewith.dto.account.EmailCheckRequest;
 import com.housewith.dto.account.LoginRequest;
 import com.housewith.dto.account.LoginResponse;
+import com.housewith.dto.account.PasswordVerifyRequest;
 import com.housewith.dto.account.SlotCreateRequest;
 import com.housewith.dto.account.SlotLoginRequest;
 import com.housewith.dto.account.SlotLoginResponse;
+import com.housewith.dto.account.SlotPinUpdateRequest;
 import com.housewith.dto.account.SlotUpdateRequest;
 import com.housewith.dto.account.UserCreateRequest;
 import com.housewith.service.AccountService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+/** 작성자: 박성현
+ * 작성 시간: 2026-05-19/1444i
+ * 마지막 수정자: 박성현
+ * 마지막 수정 시간:2026-05-19/1444i
+ * 수정 내용: 
+ * 역할: 회원 가입 시 이메일 중복 확인용 DTO */
 
 @RestController
 @RequestMapping("/api")
@@ -84,6 +95,7 @@ public class AccountController {
     @PutMapping(value = "/slots/{slotId}", consumes = "multipart/form-data")
     public ResponseEntity<Void> updateSlot(
             @PathVariable Long slotId,
+            @AuthenticationPrincipal Long userId,
             @Valid @ModelAttribute SlotUpdateRequest request) {
         
         String updatedImageUrl = null;
@@ -92,8 +104,47 @@ public class AccountController {
             updatedImageUrl = "https://housewith-s3-bucket.s3.amazonaws.com/profiles/" + file.getOriginalFilename();
         }
 
-        accountService.updateSlot(slotId, request, updatedImageUrl);
+        accountService.updateSlot(slotId, userId, request, updatedImageUrl);
+        return ResponseEntity.ok().build();
+    }
+
+    // 가족 계정 비밀번호 검증 (PIN 수정 진입 전 1차 확인)
+    @PostMapping("/auth/verify-password")
+    public ResponseEntity<Void> verifyPassword(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody PasswordVerifyRequest request) {
+
+        accountService.verifyAccountPassword(userId, request.getPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    // 슬롯 PIN 번호 변경 및 해제
+    @PatchMapping("/slots/{slotId}/pin")
+    public ResponseEntity<Void> updateSlotPin(
+            @PathVariable("slotId") Long slotId,
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody SlotPinUpdateRequest request) {
+
+        accountService.updateSlotPin(slotId, userId, request);
         return ResponseEntity.ok().build();
     }
     
+    // 슬롯 삭제 (DELETE /api/slots/{slotId})
+    @DeleteMapping("/slots/{slotId}")
+    public ResponseEntity<Void> deleteSlot(
+            @PathVariable("slotId") Long slotId,
+            @AuthenticationPrincipal Long userId) {
+
+        accountService.deleteSlot(slotId, userId);
+        return ResponseEntity.noContent().build(); // 204 바디 없음 성공
+    }
+
+    // 회원 탈퇴 (DELETE /api/auth/withdraw)
+    @DeleteMapping("/auth/withdraw")
+    public ResponseEntity<Void> withdrawUser(
+            @AuthenticationPrincipal Long userId) {
+
+        accountService.withdrawUser(userId);
+        return ResponseEntity.noContent().build(); // 204 바디 없음 성공
+    }
 }

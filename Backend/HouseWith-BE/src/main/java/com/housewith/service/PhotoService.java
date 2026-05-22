@@ -63,7 +63,7 @@ public class PhotoService {
     public List<PhotoSummaryResponse> getPhotoSummaryList(Long userId, String albumName) {
         String targetAlbum = (albumName != null && !albumName.isBlank()) ? albumName : "기본 앨범";
         
-        // 레포지토리에 구현하신 메서드 스펙 정확히 호출
+        // 레포지토리에 구현한 메서드 스펙 정확히 호출
         List<Photo> photos = photoRepository.findByUser_IdAndAlbumNameOrderByPhotoDateDesc(userId, targetAlbum);
 
         return photos.stream()

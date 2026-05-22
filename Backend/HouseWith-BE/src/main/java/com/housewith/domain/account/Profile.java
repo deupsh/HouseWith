@@ -16,6 +16,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** 작성자: 백승훈
+ * 작성 시간: 2026-05-19
+ * 마지막 수정자: 박성현
+ * 마지막 수정 시간:2026-05-22/0950i
+ * 수정 내용: PIN 번호 수정 더티 체크 메소드 분리
+ * 역할: 슬롯(profiles)의 Entity 클래스 */
+
 @Entity
 @Table(name = "profiles")
 @Getter
@@ -66,9 +73,8 @@ public class Profile {
     }
     
     // 프로필 정보 수정 비즈니스 로직 
-    public void modifyProfileDetails(String nickname, String pinCode, String emojiId, Integer backgroundId, String customProfileImage) {
+    public void modifyProfileDetails(String nickname, String emojiId, Integer backgroundId, String customProfileImage) {
         if (nickname != null) this.nickname = nickname;
-        if (pinCode != null) this.pinCode = pinCode;
         if (emojiId != null) this.emojiId = emojiId;
         if (backgroundId != null) this.backgroundId = backgroundId;
         
@@ -80,6 +86,11 @@ public class Profile {
             this.customProfileImage = null; // 이모지로 바꿨다면 기존 사진 경로 초기화
             this.profileType = 0; // 이모지 타입 0으로 변경
         }
+    }
+    
+    // PIN 번호 변경 비즈니스 로직
+    public void changePinCode(String newPinCode) {
+        this.pinCode = newPinCode; // 호출 시 더티 체킹으로 반영
     }
 
     // 앱 마지막 접속 시간 갱신 로직

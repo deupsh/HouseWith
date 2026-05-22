@@ -7,7 +7,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.housewith.persistence.account.UserRepository;
 import com.housewith.domain.account.Profile;
 import com.housewith.domain.account.User;
 import com.housewith.dto.account.EmailCheckRequest;
@@ -17,13 +16,22 @@ import com.housewith.dto.account.SlotCreateRequest;
 import com.housewith.dto.account.SlotItem;
 import com.housewith.dto.account.SlotLoginRequest;
 import com.housewith.dto.account.SlotLoginResponse;
+import com.housewith.dto.account.SlotPinUpdateRequest;
 import com.housewith.dto.account.SlotUpdateRequest;
 import com.housewith.dto.account.UserCreateRequest;
-import com.housewith.persistence.account.ProfileRepository;
 import com.housewith.global.security.JwtTokenProvider;
-
+import com.housewith.persistence.account.ProfileRepository;
+import com.housewith.persistence.account.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+
+/** 작성자: 백승훈
+ * 작성 시간: 2026-05-20/1641i
+ * 마지막 수정자: 박성현
+ * 마지막 수정 시간: 2026-05-22/1111i
+ * 수정 내용: 슬롯 삭제, 회원 탈퇴 메소드 추가 (박성현 - 2026-05-22/0915i)
+ * PIN 번호 수정 분리 (박성현 - 2026-05-22/1111i)
+ * 역할: 가족 그룹 계정의 보안 인증(회원가입/로그인)과 개별 구성원 슬롯의 전체 생명주기(생성/수정/접속/삭제)를 총괄하는 서비스 */
 
 @Service
 @RequiredArgsConstructor
@@ -149,19 +157,81 @@ public class AccountService {
         );
     }
 
-    //가족 프로필 정보 수정
+    // 가족 프로필 정보 수정
     @Transactional
-    public void updateSlot(Long slotId, SlotUpdateRequest request, String updatedImageUrl) {
+    public void updateSlot(Long slotId, Long userId, SlotUpdateRequest request, String updatedImageUrl) {
         Profile profile = profileRepository.findById(slotId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로필 슬롯입니다."));
 
+     // 권한 방어벽 추가: 내 가족 슬롯이 맞는지 검증
+        if (!profile.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("수정 권한이 없습니다.");
+        }
+        
         // 엔티티 정보 갱신 (실제 Profile 엔티티의 변경 메서드 호출)
         profile.modifyProfileDetails(
                 request.getNickname(),
-                request.getPinCode(),
                 request.getProfileEmoji(),
                 request.getProfileBackground(),
                 updatedImageUrl
         );
+    }
+
+    // 가족 계정 비밀번호 검증 (PIN 수정 진입 전 1차 확인용)
+    public void verifyAccountPassword(Long userId, String password) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계정입니다."));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("계정 비밀번호가 일치하지 않습니다.");
+        }
+    }
+
+    // 슬롯 PIN 번호 변경 및 해제
+    @Transactional
+    public void updateSlotPin(Long slotId, Long userId, SlotPinUpdateRequest request) {
+        Profile profile = profileRepository.findById(slotId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로필 슬롯입니다."));
+
+        if (!profile.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("해당 슬롯의 설정을 변경할 권한이 없습니다.");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계정입니다."));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("계정 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 데이터 정제 (Cleansing): 빈 문자열이 들어와도 확실하게 NULL로 치환
+        String targetPin = (request.getNewPinCode() == null || request.getNewPinCode().isBlank()) 
+                           ? null 
+                           : request.getNewPinCode();
+
+        profile.changePinCode(targetPin);
+    }
+    
+    // 슬롯 삭제
+    @Transactional
+    public void deleteSlot(Long slotId, Long userId) {
+        Profile profile = profileRepository.findById(slotId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로필 슬롯입니다."));
+
+        // 무결성 검증: 다른 가족 계정의 슬롯을 삭제하려는 악의적 요청 차단
+        if (!profile.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("해당 슬롯을 삭제할 권한이 없습니다.");
+        }
+
+        profileRepository.delete(profile);
+    }
+
+    // 회원 탈퇴 (가족 그룹 전체 삭제)
+    @Transactional
+    public void withdrawUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계정입니다."));
+
+        userRepository.delete(user);
     }
 }
