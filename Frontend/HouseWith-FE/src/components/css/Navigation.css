@@ -26,6 +26,17 @@
 
 .logo-icon { margin-right: 5px; }
 
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.user-profile-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .user-profile-mini {
   font-size: 1.5rem;
   width: 36px;

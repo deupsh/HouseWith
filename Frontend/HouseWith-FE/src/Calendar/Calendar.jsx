@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // 🌟 Axios 임포트
+import axios from 'axios';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import FamilyNote from '../components/FamilyNote'; 
 import CalendarModal from './CalendarModal';
 import './Calendar.css';
 
-// 🌟 임시 더미 데이터 (백엔드 서버가 아직 없을 때 보여줄 기본 일정)
 const MOCK_EVENTS = [
   { id: 1, title: '엄마 생일', startDate: '2026-05-15T10:00', endDate: '2026-05-15T22:00', memo: '가족 외식 예정', writer: '엄마', participants: ['엄마', '아빠', '딸', '아들'], color: '#E6F0E7' },
   { id: 2, title: '딸 학원 상담', startDate: '2026-05-18T17:00', endDate: '2026-05-18T18:00', memo: '성적표 지참', writer: '아빠', participants: ['아빠', '딸'], color: '#FFF3CD' },
@@ -16,41 +15,47 @@ const Calendar = ({ showToast }) => {
   const currentUser = '엄마';
   const familyMembers = ['엄마', '아빠', '딸', '아들'];
 
-  // 🌟 1. 이벤트 상태 초기화 (처음엔 빈 배열로 시작)
   const [events, setEvents] = useState([]);
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('create'); 
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  const daysInMonth = 31;
-  const firstDayOfMonth = 5; 
+  // 현재 보고 있는 연도와 월을 상태(State)로 관리
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1));
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth() + 1;
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
   const totalSlots = [...Array(firstDayOfMonth).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
 
-  // 🌟 2. 캘린더 데이터 불러오기 (GET)
-  const fetchEvents = async () => {
+  // 이전 달, 다음 달 이동 함수
+  const prevMonth = () => setCurrentDate(new Date(year, month - 2, 1));
+  const nextMonth = () => setCurrentDate(new Date(year, month, 1));
+
+  useEffect(() => {
+    fetchEvents(year, month);
+  }, [currentDate]);
+
+  const fetchEvents = async (fetchYear, fetchMonth) => {
     try {
       const token = localStorage.getItem('accessToken');
-      // 백엔드에 2026년 5월 일정 요청
-      const response = await axios.get('/api/calendar/events?year=2026&month=5', {
+      const response = await axios.get(`/api/calendar/events?year=${fetchYear}&month=${fetchMonth}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEvents(response.data);
     } catch (error) {
-      console.error("일정 불러오기 실패 (서버 미준비):", error);
-      setEvents(MOCK_EVENTS); // 에러 시 임시 더미 데이터 세팅
+      console.error("일정 불러오기 실패:", error);
+      if (fetchYear === 2026 && fetchMonth === 5) {
+        setEvents(MOCK_EVENTS); 
+      } else {
+        setEvents([]); 
+      }
     }
   };
 
-  // 화면이 처음 렌더링될 때 자동으로 fetchEvents 실행
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  // 날짜 클릭 핸들러
   const handleDateClick = (day) => {
     if (!day) return;
-    const clickedDateStr = `2026-05-${String(day).padStart(2, '0')}`;
+    const clickedDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const dayEvent = events.find(e => e.startDate.startsWith(clickedDateStr));
 
     if (dayEvent) {
@@ -63,7 +68,6 @@ const Calendar = ({ showToast }) => {
     setIsModalOpen(true);
   };
 
-  // 🌟 3. 일정 저장 핸들러 (등록 POST / 수정 PUT)
   const handleModalSubmit = async (eventData) => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -74,13 +78,11 @@ const Calendar = ({ showToast }) => {
         const randomColor = colors[events.length % colors.length];
         const newEventPayload = { ...eventData, color: randomColor };
 
-        // [API 전송 - POST] 새로운 일정 추가
         const response = await axios.post('/api/calendar/events', newEventPayload, { headers });
-        setEvents([...events, response.data]); // 백엔드가 준 진짜 데이터로 업데이트
+        setEvents([...events, response.data]); 
         if (showToast) showToast("새 일정이 등록되었어요! 🗓️");
 
       } else if (modalMode === 'edit') {
-        // [API 전송 - PUT] 기존 일정 수정
         const response = await axios.put(`/api/calendar/events/${eventData.id}`, eventData, { headers });
         setEvents(events.map(e => e.id === eventData.id ? response.data : e));
         if (showToast) showToast("일정 수정이 완료되었습니다.");
@@ -90,7 +92,6 @@ const Calendar = ({ showToast }) => {
     } catch (error) {
       console.error("일정 저장 실패:", error);
       
-      // 🚨 서버 통신 실패 시 UI 테스트를 위한 Fallback (가짜 저장)
       if (modalMode === 'create') {
         const colors = ['#E6F0E7', '#FFF3CD', '#FDECE8', '#E3F2FD', '#F3E5F5'];
         const randomColor = colors[events.length % colors.length];
@@ -104,12 +105,9 @@ const Calendar = ({ showToast }) => {
     }
   };
 
-  // 🌟 4. 일정 삭제 핸들러 (DELETE)
   const handleEventDelete = async (eventId) => {
     try {
       const token = localStorage.getItem('accessToken');
-      
-      // [API 전송 - DELETE] 일정 삭제
       await axios.delete(`/api/calendar/events/${eventId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -120,7 +118,6 @@ const Calendar = ({ showToast }) => {
 
     } catch (error) {
       console.error("일정 삭제 실패:", error);
-      // 🚨 서버 통신 실패 시 UI 테스트를 위한 Fallback (가짜 삭제)
       setEvents(events.filter(e => e.id !== eventId));
       setIsModalOpen(false);
       if (showToast) showToast("일정이 삭제되었습니다. (로컬)");
@@ -134,14 +131,14 @@ const Calendar = ({ showToast }) => {
       <section className="calendar-section">
         <div className="calendar-header">
           <div className="month-selector">
-            <h2>2026년 5월</h2>
+            <h2>{year}년 {month}월</h2>
             <div className="month-arrows">
-              <button className="icon-btn"><ChevronLeft size={24} /></button>
-              <button className="icon-btn"><ChevronRight size={24} /></button>
+              <button className="icon-btn" onClick={prevMonth}><ChevronLeft size={24} /></button>
+              <button className="icon-btn" onClick={nextMonth}><ChevronRight size={24} /></button>
             </div>
           </div>
           <button className="add-event-btn" onClick={() => {
-            const todayStr = `2026-05-${String(new Date().getDate()).padStart(2, '0')}T12:00`;
+            const todayStr = `${year}-${String(month).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}T12:00`;
             setSelectedEvent({ defaultDate: todayStr });
             setModalMode('create');
             setIsModalOpen(true);
@@ -158,11 +155,11 @@ const Calendar = ({ showToast }) => {
           {totalSlots.map((day, index) => {
             const today = new Date();
             const isToday = day && 
-                            today.getFullYear() === 2026 && 
-                            (today.getMonth() + 1) === 5 && 
+                            today.getFullYear() === year && 
+                            (today.getMonth() + 1) === month && 
                             today.getDate() === day;
 
-            const dateStr = day ? `2026-05-${String(day).padStart(2, '0')}` : '';
+            const dateStr = day ? `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}` : '';
             const dayEvents = events.filter(e => e.startDate.startsWith(dateStr));
 
             return (

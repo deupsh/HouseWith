@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import axios from 'axios';
 import { Calendar, CheckSquare, Image, MessageCircle, BarChart2 } from 'lucide-react';
@@ -40,35 +40,34 @@ const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
   return (
     <nav className="top-nav">
       <div className="nav-header">
-        <h1 className="logo-title">
-          <span className="logo-icon">🏠</span> HouseWith
-        </h1>
+        <NavLink to="/Account" className="logo-link">
+          <h1 className="logo-title">
+            <span className="logo-icon">🏠</span> HouseWith
+          </h1>
+        </NavLink>
         
         <div 
-          className="user-profile-mini" 
+          className="user-profile-wrapper" 
           onClick={() => setIsEditOpen(true)}
-          style={{ 
-            cursor: 'pointer',
-            backgroundColor: currentProfile.profile_type === 0 ? colorList[currentProfile.background_id] : 'transparent',
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center',
-            overflow: 'hidden'
-          }}
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
         >
-          {currentProfile.profile_type === 1 ? (
-            <img 
-              src={currentProfile.custom_profile_image} 
-              alt="profile" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-            />
-          ) : (
-            <img 
-              src={iconList[currentProfile.emoji_id]} 
-              alt="avatar" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-            />
-          )}
+          <span className="user-name" style={{ fontWeight: '600', color: '#333' }}>
+            {currentProfile.nickname} 님
+          </span>
+          <div 
+            className="user-profile-mini" 
+            style={{ 
+              backgroundColor: currentProfile.profile_type === 0 ? colorList[currentProfile.background_id] : 'transparent',
+              overflow: 'hidden',
+              borderRadius: '12px' // 둥근 모서리 추가
+            }}
+          >
+            {currentProfile.profile_type === 1 ? (
+              <img src={currentProfile.custom_profile_image} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <img src={iconList[currentProfile.emoji_id]} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            )}
+          </div>
         </div>
       </div>
 

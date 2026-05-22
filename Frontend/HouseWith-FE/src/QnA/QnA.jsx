@@ -32,25 +32,41 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
   const [questionData, setQuestionData] = useState(null);
   const [myAnswerInput, setMyAnswerInput] = useState('');
 
-  //Get
+  // 현재 보고 있는 주차를 관리하는 상태 (0: 이번 주, -1: 지난 주, 1: 다음 주)
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  // 데이터를 불러올 때 weekOffset 반영
   const fetchWeeklyQuestion = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('/api/qna/weekly', {
+      // 백엔드 API에 몇 주차인지 정보(offset)를 함께 보냅니다.
+      const response = await axios.get(`/api/qna/weekly?offset=${weekOffset}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setQuestionData(response.data);
     } catch (error) {
       console.error("QnA 데이터를 불러오지 못했습니다.", error);
-      // 백엔드 미연결 시 로컬 테스트를 위한 Fallback
-      setQuestionData(MOCK_QUESTION_RESPONSE);
+      
+      // 🚨 서버 미연결 시 로컬 테스트용 로직 (offset에 따라 주차 글자만 변경해서 보여줌)
+      const mockWeekNum = 2 + weekOffset; // 5월 2주차 기준 테스트용 계산
+      setQuestionData({
+        ...MOCK_QUESTION_RESPONSE,
+        weekLabel: `2026년 5월 ${mockWeekNum}주차`,
+        content: weekOffset === 0 
+          ? "만약 우리 가족이 다 함께 무인도에 간다면 각자 어떤 역할을 할까요?" 
+          : `${Math.abs(weekOffset)}주 ${weekOffset < 0 ? '전' : '후'}의 질문입니다.` // 넘어가는지 확인용 가짜 텍스트
+      });
     }
   };
 
-  // 컴포넌트 마운트 시 최초 1회 실행
+  // weekOffset 값이 바뀔 때마다 데이터를 새로 불러옵니다.
   useEffect(() => {
     fetchWeeklyQuestion();
-  }, []);
+  }, [weekOffset]);
+
+  // 버튼 클릭 시 weekOffset을 더하거나 뺍니다.
+  const handlePrevWeek = () => setWeekOffset(prev => prev - 1);
+  const handleNextWeek = () => setWeekOffset(prev => prev + 1);
 
   //POST
   const handleAnswerSubmit = async () => {
@@ -58,7 +74,6 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
     
     try {
       const token = localStorage.getItem('accessToken');
-      
       // 답변 전송
       await axios.post('/api/qna/answer', { answer: myAnswerInput.trim() }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -102,9 +117,9 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
   return (
     <div className="qna-page">
       <div className="qna-header">
-        <button className="week-nav-btn">{"<"}</button>
+        <button className="week-nav-btn" onClick={handlePrevWeek}>{"<"}</button>
         <span className="current-week">{questionData.weekLabel}</span>
-        <button className="week-nav-btn">{">"}</button>
+        <button className="week-nav-btn" onClick={handleNextWeek}>{">"}</button>
       </div>
 
       <div className="qna-settings">

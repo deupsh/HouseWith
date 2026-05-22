@@ -85,10 +85,8 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
       groupName: groupName          
     };
 
-    // 백엔드 통신 로직
     try {
-      await axios.post('/api/auth/register', newUserData);
-      // 여기서 response.data.token 등을 로컬 스토리지에 저장하는 로직을 추가 가능(자동 로그인)
+      await axios.post('/api/auth/signup', newUserData);
 
       // 1. 가입 성공 직후, 방금 입력한 정보로 '자동 로그인' 수행
       const loginResponse = await axios.post('/api/auth/login', {
@@ -118,11 +116,9 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
     } catch (error) {
       console.error("회원가입 실패:", error);
       
-      // 4. 에러 핸들링 (특히 중복 이메일 처리)
-      if (error.response && error.response.status === 409) { // 409 Conflict (보통 중복일 때 사용)
+      if (error.response && error.response.status === 409) { 
         setErrors({ ...newErrors, email: '이미 가입된 이메일 주소입니다.' });
       } else {
-        // 백엔드가 아직 없거나 서버 에러일 때 화면 넘어가도록 처리
         if (setIsLoggedIn) setIsLoggedIn(true); 
         if (showToast) showToast("회원가입 성공!🎉 (로컬 테스트)");
         navigate('/account'); 
@@ -131,172 +127,177 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="top-section">
-        <h1 className="layout-title">회원가입</h1>
-        <p className="layout-description">우리 가족의 그룹을 생성합니다.</p>
-      </div>
-      
-      <form onSubmit={handleSignUp} className="auth-form">
-
-        {/* 이메일 */}
-        <div className="form-field">
-          <label>이메일</label>
-          <div className="phone-input-group">
-            <input 
-              type="text" 
-              placeholder="아이디" 
-              value={emailLocal}
-              onChange={(e) => {
-                setEmailLocal(e.target.value.replace(/[^a-zA-Z0-9_-]/g, '')); 
-                if (errors.email) setErrors({ ...errors, email: '' });
-              }}
-              className={`phone-input ${errors.email ? 'input-error' : ''}`}
-              style={{ textAlign: 'left', paddingLeft: '15px' }} 
-            />
-            <span className="phone-separator">@</span>
-            <input 
-              type="text" 
-              placeholder="도메인 입력" 
-              value={emailDomain}
-              onChange={(e) => {
-                setEmailDomain(e.target.value);
-                if (errors.email) setErrors({ ...errors, email: '' });
-              }}
-              disabled={domainSelect !== ""} 
-              className={`phone-input ${errors.email ? 'input-error' : ''}`}
-              style={{ textAlign: 'left', paddingLeft: '15px' }}
-            />
-          </div>
-          <select 
-            value={domainSelect} 
-            onChange={handleDomainChange}
-            className="phone-input"
-            style={{ width: '100%', marginTop: '8px', cursor: 'pointer', textAlign: 'left', paddingLeft: '15px' }}
-          >
-            <option value="">직접 입력</option>
-            <option value="naver.com">naver.com</option>
-            <option value="gmail.com">gmail.com</option>
-            <option value="daum.net">daum.net</option>
-            <option value="hanmail.net">hanmail.net</option>
-            <option value="kakao.com">kakao.com</option>
-          </select>
-          <ErrorMessage message={errors.email} />
+    <div className="auth-wrapper">
+      <div className="auth-container">
+        <div className="top-section">
+          <h1 className="layout-title">회원가입</h1>
+          <p className="layout-description">우리 가족의 그룹을 생성합니다.</p>
         </div>
+        
+        <form onSubmit={handleSignUp} className="auth-form">
 
-        <div className="form-field">
-          <label>비밀번호</label>
-          <div className="input-with-icon">
-            <Lock className="input-icon" />
-            <input 
-              type="password" 
-              placeholder="영문, 숫자 조합 4~20자" 
-              value={password}
-              onChange={(e) => {
-                const newVal = e.target.value;
-                setPassword(newVal);
-
-                if (passwordConfirm.length > 0 && newVal !== passwordConfirm) {
-                  setErrors(prev => ({ ...prev, password: '', passwordConfirm: '비밀번호가 일치하지 않습니다.' }));
-                } else if (newVal === passwordConfirm) {
-                  setErrors(prev => ({ ...prev, password: '', passwordConfirm: '' }));
-                } else {
-                  setErrors(prev => ({ ...prev, password: '' }));
-                }
-              }}
-              maxLength={20}
-              className={errors.password ? 'input-error' : ''}
-            />
+          {/* 이메일 */}
+          <div className="form-field">
+            <label>이메일</label>
+            <div className="phone-input-group">
+              <input 
+                type="text" 
+                placeholder="아이디" 
+                value={emailLocal}
+                onChange={(e) => {
+                  setEmailLocal(e.target.value.replace(/[^a-zA-Z0-9_-]/g, '')); 
+                  if (errors.email) setErrors({ ...errors, email: '' });
+                }}
+                className={`phone-input ${errors.email ? 'input-error' : ''}`}
+                style={{ textAlign: 'left', paddingLeft: '15px' }} 
+              />
+              <span className="phone-separator">@</span>
+              <input 
+                type="text" 
+                placeholder="도메인 입력" 
+                value={emailDomain}
+                onChange={(e) => {
+                  setEmailDomain(e.target.value);
+                  if (errors.email) setErrors({ ...errors, email: '' });
+                }}
+                disabled={domainSelect !== ""} 
+                className={`phone-input ${errors.email ? 'input-error' : ''}`}
+                style={{ textAlign: 'left', paddingLeft: '15px' }}
+              />
+            </div>
+            <select 
+              value={domainSelect} 
+              onChange={handleDomainChange}
+              className="phone-input"
+              style={{ width: '100%', marginTop: '8px', cursor: 'pointer', textAlign: 'left', paddingLeft: '15px' }}
+            >
+              <option value="">직접 입력</option>
+              <option value="naver.com">naver.com</option>
+              <option value="gmail.com">gmail.com</option>
+              <option value="daum.net">daum.net</option>
+              <option value="hanmail.net">hanmail.net</option>
+              <option value="kakao.com">kakao.com</option>
+            </select>
+            <ErrorMessage message={errors.email} />
           </div>
-          <ErrorMessage message={errors.password} />
-        </div>
 
-        <div className="form-field">
-          <label>비밀번호 확인</label>
-          <div className="input-with-icon">
-            <Lock className="input-icon" />
-            <input 
-              type="password" 
-              placeholder="비밀번호를 다시 입력해주세요" 
-              value={passwordConfirm}
-              onChange={(e) => {
-                const newVal = e.target.value;
-                setPasswordConfirm(newVal);
-                if (newVal.length > 0 && password !== newVal) {
-                  setErrors(prev => ({ ...prev, passwordConfirm: '비밀번호가 일치하지 않습니다.' }));
-                } else {
-                  setErrors(prev => ({ ...prev, passwordConfirm: '' }));
-                }
-              }}
-              maxLength={20}
-              className={errors.passwordConfirm ? 'input-error' : ''}
-            />
+          {/* 비밀번호 */}
+          <div className="form-field">
+            <label>비밀번호</label>
+            <div className="input-with-icon">
+              <Lock className="input-icon" />
+              <input 
+                type="password" 
+                placeholder="영문, 숫자 조합 4~20자" 
+                value={password}
+                onChange={(e) => {
+                  const newVal = e.target.value;
+                  setPassword(newVal);
+
+                  if (passwordConfirm.length > 0 && newVal !== passwordConfirm) {
+                    setErrors(prev => ({ ...prev, password: '', passwordConfirm: '비밀번호가 일치하지 않습니다.' }));
+                  } else if (newVal === passwordConfirm) {
+                    setErrors(prev => ({ ...prev, password: '', passwordConfirm: '' }));
+                  } else {
+                    setErrors(prev => ({ ...prev, password: '' }));
+                  }
+                }}
+                maxLength={20}
+                className={errors.password ? 'input-error' : ''}
+              />
+            </div>
+            <ErrorMessage message={errors.password} />
           </div>
-          <ErrorMessage message={errors.passwordConfirm} />
-        </div>
 
-        <div className="form-field">
-          <label>전화번호</label>
-          <div className="phone-input-group">
-            <input 
-              type="text" placeholder="010" maxLength={3} value={phoneFirst}
-              onChange={(e) => {
-                setPhoneFirst(e.target.value.replace(/[^0-9]/g, ''));
-                if (errors.phone) setErrors({ ...errors, phone: '' });
-              }}
-              className={`phone-input ${errors.phone ? 'input-error' : ''}`}
-            />
-            <span className="phone-separator">-</span>
-            <input 
-              type="text" placeholder="0000" maxLength={4} value={phoneMiddle}
-              onChange={(e) => {
-                setPhoneMiddle(e.target.value.replace(/[^0-9]/g, ''));
-                if (errors.phone) setErrors({ ...errors, phone: '' });
-              }}
-              className={`phone-input ${errors.phone ? 'input-error' : ''}`}
-            />
-            <span className="phone-separator">-</span>
-            <input 
-              type="text" placeholder="0000" maxLength={4} value={phoneLast}
-              onChange={(e) => {
-                setPhoneLast(e.target.value.replace(/[^0-9]/g, ''));
-                if (errors.phone) setErrors({ ...errors, phone: '' });
-              }}
-              className={`phone-input ${errors.phone ? 'input-error' : ''}`}
-            />
+          {/* 비밀번호 확인 */}
+          <div className="form-field">
+            <label>비밀번호 확인</label>
+            <div className="input-with-icon">
+              <Lock className="input-icon" />
+              <input 
+                type="password" 
+                placeholder="비밀번호를 다시 입력해주세요" 
+                value={passwordConfirm}
+                onChange={(e) => {
+                  const newVal = e.target.value;
+                  setPasswordConfirm(newVal);
+                  if (newVal.length > 0 && password !== newVal) {
+                    setErrors(prev => ({ ...prev, passwordConfirm: '비밀번호가 일치하지 않습니다.' }));
+                  } else {
+                    setErrors(prev => ({ ...prev, passwordConfirm: '' }));
+                  }
+                }}
+                maxLength={20}
+                className={errors.passwordConfirm ? 'input-error' : ''}
+              />
+            </div>
+            <ErrorMessage message={errors.passwordConfirm} />
           </div>
-          <ErrorMessage message={errors.phone} />
-        </div>
 
-        {/* 그룹명 */}
-        <div className="form-field">
-          <label>그룹명</label>
-          <div className="input-with-icon">
-            <Users className="input-icon" />
-            <input 
-              type="text" 
-              placeholder="자유 형식 (2~20자)" 
-              value={groupName}
-              onChange={(e) => {
-                setGroupName(e.target.value);
-                if (errors.groupName) setErrors({ ...errors, groupName: '' });
-              }}
-              maxLength={20}
-              className={errors.groupName ? 'input-error' : ''}
-            />
+          {/* 전화번호 */}
+          <div className="form-field">
+            <label>전화번호</label>
+            <div className="phone-input-group">
+              <input 
+                type="text" placeholder="010" maxLength={3} value={phoneFirst}
+                onChange={(e) => {
+                  setPhoneFirst(e.target.value.replace(/[^0-9]/g, ''));
+                  if (errors.phone) setErrors({ ...errors, phone: '' });
+                }}
+                className={`phone-input ${errors.phone ? 'input-error' : ''}`}
+              />
+              <span className="phone-separator">-</span>
+              <input 
+                type="text" placeholder="0000" maxLength={4} value={phoneMiddle}
+                onChange={(e) => {
+                  setPhoneMiddle(e.target.value.replace(/[^0-9]/g, ''));
+                  if (errors.phone) setErrors({ ...errors, phone: '' });
+                }}
+                className={`phone-input ${errors.phone ? 'input-error' : ''}`}
+              />
+              <span className="phone-separator">-</span>
+              <input 
+                type="text" placeholder="0000" maxLength={4} value={phoneLast}
+                onChange={(e) => {
+                  setPhoneLast(e.target.value.replace(/[^0-9]/g, ''));
+                  if (errors.phone) setErrors({ ...errors, phone: '' });
+                }}
+                className={`phone-input ${errors.phone ? 'input-error' : ''}`}
+              />
+            </div>
+            <ErrorMessage message={errors.phone} />
           </div>
-          <ErrorMessage message={errors.groupName} />
+
+          {/* 그룹명 */}
+          <div className="form-field">
+            <label>그룹명</label>
+            <div className="input-with-icon">
+              <Users className="input-icon" />
+              <input 
+                type="text" 
+                placeholder="자유 형식 (2~20자)" 
+                value={groupName}
+                onChange={(e) => {
+                  setGroupName(e.target.value);
+                  if (errors.groupName) setErrors({ ...errors, groupName: '' });
+                }}
+                maxLength={20}
+                className={errors.groupName ? 'input-error' : ''}
+              />
+            </div>
+            <ErrorMessage message={errors.groupName} />
+          </div>
+
+          <button type="submit" className="main-button">
+            가입하기
+          </button>
+        </form>
+
+        <div className="bottom-links">
+          <p className="signup-text">
+            이미 계정이 있으신가요? <Link to="/login" className="accent-link">로그인</Link>
+          </p>
         </div>
-
-        <button type="submit" className="main-button">
-          가입하기
-        </button>
-      </form>
-
-      <div className="bottom-links">
-        <p className="signup-text">
-          이미 계정이 있으신가요? <Link to="/login" className="accent-link">로그인</Link>
-        </p>
       </div>
     </div>
   );
