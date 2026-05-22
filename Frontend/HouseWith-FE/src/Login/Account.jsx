@@ -172,8 +172,29 @@ const Account = ({ onSelect, showToast, groupName = "홍가네" }) => {
   const handleModalSubmit = async (formData) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.post('/api/members', formData, {
-        headers: { Authorization: `Bearer ${token}` }
+      
+      // 1. FormData 객체 생성
+      const submitData = new FormData();
+      
+      // 2. 백엔드 DTO 변수명에 맞춰서 데이터 넣기
+      submitData.append('nickname', formData.nickname);
+      submitData.append('profileEmoji', formData.emoji_id);
+      submitData.append('profileBackground', formData.background_id);
+      
+      // PIN 번호와 이미지는 있을 때만 추가
+      if (formData.pin_code) {
+        submitData.append('pinCode', formData.pin_code);
+      }
+      if (formData.profileImage) {
+        submitData.append('profileImage', formData.profileImage); 
+      }
+
+      // 3. API 주소(/api/slots)와 헤더(multipart/form-data) 설정
+      const response = await axios.post('/api/slots', submitData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data' // 파일 업로드를 위한 필수 설정
+        }
       });
       setProfiles([...profiles, response.data]);
       setIsModalOpen(false);
