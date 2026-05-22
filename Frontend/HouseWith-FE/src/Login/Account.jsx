@@ -58,7 +58,7 @@ const Account = ({ onSelect, showToast}) => {
           emoji_id: slot.profileEmoji,
           background_id: slot.profileBackground,
           custom_profile_image: slot.customProfileImage,
-          has_pin: slot.pinCode != null // 명세상 pinCode 필드가 있음
+          has_pin: slot.pinCode !== null && slot.pinCode !== ""
         }));
         setProfiles(mappedProfiles);
         const savedGroupName = localStorage.getItem('groupName');

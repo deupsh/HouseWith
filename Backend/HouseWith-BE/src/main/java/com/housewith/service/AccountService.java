@@ -90,6 +90,7 @@ public class AccountService {
         List<SlotItem> slots = profiles.stream()
                 .map(p -> new SlotItem(
                         p.getId(),
+                        p.getPinCode(),
                         p.getNickname(),
                         p.getEmojiId(),
                         p.getBackgroundId(),
@@ -114,6 +115,7 @@ public class AccountService {
         return profiles.stream()
                 .map(p -> new SlotItem(
                         p.getId(),
+                        p.getPinCode(),
                         p.getNickname(),
                         p.getEmojiId(),
                         p.getBackgroundId(),
@@ -147,6 +149,7 @@ public class AccountService {
         // API 명세서에 맞게 SlotItem DTO로 변환하여 리턴
         return new SlotItem(
                 savedProfile.getId(),
+                savedProfile.getPinCode(),
                 savedProfile.getNickname(),
                 savedProfile.getEmojiId(),
                 savedProfile.getBackgroundId(),
