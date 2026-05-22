@@ -81,13 +81,13 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
     const newUserData = {
       email: fullEmail,                  
       password: password,            
-      phone_number: fullPhoneNumber, 
-      group_name: groupName          
+      phoneNumber: fullPhoneNumber, 
+      groupName: groupName          
     };
 
     // 백엔드 통신 로직
     try {
-      await axios.post('/api/auth/signup', newUserData);
+      await axios.post('/api/auth/register', newUserData);
       // 여기서 response.data.token 등을 로컬 스토리지에 저장하는 로직을 추가 가능(자동 로그인)
 
       if (setIsLoggedIn) {
