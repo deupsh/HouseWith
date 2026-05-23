@@ -23,6 +23,17 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
 
   const [errors, setErrors] = useState({ nickname: '', pin: '', photo: '' });
 
+  // 🚨 [추가] 이미지 경로를 안전하게 변환해주는 헬퍼 함수
+  const getSafeImageUrl = (imagePath) => {
+    if (!imagePath) return '';
+    // DB 경로(시작이 '/')일 경우, 한글/공백을 안전하게 인코딩(encodeURI)해서 합쳐줍니다.
+    if (imagePath.startsWith('/')) {
+      return `http://localhost/uploads${encodeURI(imagePath)}`;
+    }
+    // 방금 업로드한 Base64 데이터면 그대로 반환
+    return imagePath;
+  };
+
   useEffect(() => {
     if (isOpen) {
       setMainTab('edit');
@@ -67,16 +78,6 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
       newErrors.nickname = '닉네임을 입력해주세요.';
       hasError = true;
     }
-    
-    if (mode === 'create' && pinCode && pinCode.length !== 6) {
-      newErrors.pin = 'PIN 번호는 6자리로 입력해주세요.';
-      hasError = true;
-    }
-
-    if (activeTab === 1 && !customImage) {
-      newErrors.photo = '프로필 사진을 업로드해주세요.';
-      hasError = true;
-    }
 
     if (hasError) {
       setErrors(newErrors);
@@ -84,12 +85,13 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
     }
 
     onSubmit({
+      id: initialData?.profile_id, // 🚨 수정 시 슬롯 ID 전달
       nickname,
-      pin_code: mode === 'create' ? (pinCode || null) : undefined,
+      pin_code: pinCode || null,
       profile_type: activeTab,
       emoji_id: activeTab === 0 ? emojiId : 0,
       background_id: activeTab === 0 ? backgroundId : 0,
-      custom_profile_image: activeTab === 1 ? customImage : null
+      profileImage: fileInputRef.current.files[0] || null // 🚨 Base64 대신 실제 파일 객체 전달
     });
   };
 
@@ -200,12 +202,13 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
                       <div className="photo-upload-zone-card" onClick={() => fileInputRef.current.click()}>
                         <input type="file" ref={fileInputRef} hidden onChange={handlePhotoUpload} accept="image/*" />
                         {customImage ? (
-                          <img src={customImage} alt="upload preview" className="uploaded-preview-img" />
+                          <img 
+                            src={getSafeImageUrl(customImage)} 
+                            alt="upload preview" 
+                            className="uploaded-preview-img" 
+                          />
                         ) : (
-                          <div className="upload-placeholder">
-                            <Camera size={40} />
-                            <p>클릭하여 사진 선택</p>
-                          </div>
+                          <div className="upload-placeholder">...</div>
                         )}
                       </div>
                       <ErrorMessage message={errors.photo} style={{ textAlign: 'center', display: 'block', marginTop: '10px' }} />
@@ -219,7 +222,7 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
                 <div className="preview-card" style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', background: '#f8f9fa', borderRadius: '12px' }}>
                   <div className="avatar-box" style={{ width: '60px', height: '60px', backgroundColor: activeTab === 0 ? colorList[backgroundId] : 'transparent' }}>
                     {activeTab === 1 ? (
-                      customImage ? <img src={customImage} alt="preview" className="avatar-img" /> : <Camera color="#ccc"/>
+                      customImage ? <img src={getSafeImageUrl(customImage)} alt="preview" className="avatar-img" /> : <Camera color="#ccc"/>
                     ) : (
                       <img src={iconList[emojiId]} alt="preview-icon" className="avatar-img" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                     )}

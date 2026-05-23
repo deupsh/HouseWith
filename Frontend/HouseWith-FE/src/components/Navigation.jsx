@@ -13,27 +13,34 @@ const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
     try {
       const token = localStorage.getItem('accessToken');
       
-      // 백엔드에 프로필 수정 요청 (PUT 방식)
-      await axios.put('/api/members/profile', formData, {
-        headers: { Authorization: `Bearer ${token}` }
+      // 1. FormData 객체 생성 (파일 업로드 필수)
+      const submitData = new FormData();
+      submitData.append('nickname', formData.nickname);
+      submitData.append('profileEmoji', formData.emoji_id);
+      submitData.append('profileBackground', formData.background_id);
+      
+      // 프로필 이미지가 선택되었을 때만 추가
+      if (formData.profileImage) {
+        submitData.append('profileImage', formData.profileImage);
+      }
+
+      // 2. 정확한 API 주소로 PUT 요청 (slotId 포함)
+      await axios.put(`/api/slots/${currentProfile.profile_id}`, submitData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data' // 멀티파트 명시
+        }
       });
-      setCurrentProfile({
-        ...currentProfile,
-        ...formData
-      });
+
       setIsEditOpen(false);
       if (showToast) showToast("프로필 수정 완료!");
+      
+      // 저장 성공 후 화면을 새로고침하여 바뀐 프로필 사진을 DB에서 다시 받아옵니다.
+      window.location.reload();
 
     } catch (error) {
       console.error("프로필 수정 실패:", error);
-      
-      // 🚨 서버 통신 실패 시 UI 테스트를 위한 Fallback
-      setCurrentProfile({
-        ...currentProfile,
-        ...formData
-      });
-      setIsEditOpen(false);
-      if (showToast) showToast("프로필 수정 완료! (로컬)");
+      if (showToast) showToast("프로필 수정에 실패했습니다.");
     }
   };
 
@@ -63,7 +70,11 @@ const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
             }}
           >
             {currentProfile.profile_type === 1 ? (
-              <img src={currentProfile.custom_profile_image} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img 
+                src={`http://localhost/uploads${currentProfile.custom_profile_image}`} 
+                alt="profile" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
             ) : (
               <img src={iconList[currentProfile.emoji_id]} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             )}

@@ -261,3 +261,36 @@
 .btn-group-two .btn-primary {
   flex: 1;
 }
+
+/* 모달 컨테이너 모서리 둥글게 */
+.modal-content {
+  border-radius: 20px !important;
+  padding: 24px;
+}
+
+/* 일정 아이템: 크기 키우고 모서리 둥글게 */
+.event-list-item {
+  padding: 18px 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.event-list-item:hover {
+  transform: translateY(-2px);
+  filter: brightness(0.95);
+}
+
+/* 새 일정 추가 버튼: 크기 줄이고 위치 아래로 */
+.list-add-btn {
+  margin-top: 25px; /* 아래로 간격 띄우기 */
+  width: 60%;       /* 크기 줄이기 */
+  padding: 10px;
+  border-radius: 8px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}

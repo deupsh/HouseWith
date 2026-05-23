@@ -14,7 +14,7 @@ import lombok.Setter;
  * 마지막 수정자: 박성현
  * 마지막 수정 시간: 2026-05-22/1612i
  * 수정 내용: Integer profileEmoji → String profileEmoji (박성현 - 2026-05-20/1710i)
- * Setter 어노테이션 추가 → ModelAttribute가 multipart/form-data를 파싱할때 GET/SET이 필요 
+ * Setter 어노테이션 추가 → ModelAttribute가 multipart/form-data를 파싱할때 GET/SET이 필요 (박성현 - 2026-05-22/1612i)
  * 역할: 슬롯 생성 요청 시 닉네임, 핀번호, 프로필 정보 입력 및 유효성 검증용 DTO */
 
 @Getter

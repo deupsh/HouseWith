@@ -48,6 +48,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // 회원가입, 로그인, 이메일 체크 등은 토큰 없이 무조건 진입 허용
                 .requestMatchers("/api/auth/**").permitAll()
+                // 업로드된 이미지 파일 경로 접근 무조건 허용
+                .requestMatchers("/uploads/**").permitAll()
                 // 캘린더, 슬롯 등 나머지 모든 비즈니스 API는 무조건 유효한 JWT 토큰 소지 필수
                 .anyRequest().authenticated()
             )

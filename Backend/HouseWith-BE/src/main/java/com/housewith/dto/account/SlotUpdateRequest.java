@@ -6,16 +6,19 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /** 작성자: 박성현
  * 작성 시간: 2026-05-19/1510i
  * 마지막 수정자: 박성현
- * 마지막 수정 시간:2026-05-22/0955i
+ * 마지막 수정 시간: 2026-05-23/1705i
  * 수정 내용: Integer profileEmoji → String profileEmoji (박성현 - 2026-05-20/1710i)
  * PIN 번호 항목 삭제 (PIN 번호 수정 전용 DTO 생성) (박성현 - 2026-05-22/0955i)
+ * Setter 어노테이션 추가 → ModelAttribute가 multipart/form-data를 파싱할때 GET/SET이 필요 (박성현 - 2026-05-23/1705i)
  * 역할: 슬롯 프로필 수정 요청 시 변경할 정보 입력 및 유효성 검증용 DTO */
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class SlotUpdateRequest {
 

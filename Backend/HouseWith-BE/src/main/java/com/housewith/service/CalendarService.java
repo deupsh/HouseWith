@@ -99,6 +99,7 @@ public class CalendarService {
 
         // 2. 기존 참여자 리스트 전체 삭제 후 전달받은 리스트로 재등록 (무결성 보장)
         calendarParticipantRepository.deleteByCalendarId(calendarId);
+        calendarParticipantRepository.flush();
 
         List<Long> newParticipantIds = request.getParticipantSlotIds();
         if (newParticipantIds != null && !newParticipantIds.isEmpty()) {

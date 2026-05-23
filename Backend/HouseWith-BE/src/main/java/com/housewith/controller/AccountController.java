@@ -106,17 +106,11 @@ public class AccountController {
     // 가족 프로필 정보 수정
     @PutMapping(value = "/slots/{slotId}", consumes = "multipart/form-data")
     public ResponseEntity<Void> updateSlot(
-            @PathVariable Long slotId,
+    		@PathVariable("slotId") Long slotId,
             @AuthenticationPrincipal Long userId,
             @Valid @ModelAttribute SlotUpdateRequest request) {
-        
-        String updatedImageUrl = null;
-        MultipartFile file = request.getProfileImage();
-        if (file != null && !file.isEmpty()) {
-            updatedImageUrl = "https://housewith-s3-bucket.s3.amazonaws.com/profiles/" + file.getOriginalFilename();
-        }
-
-        accountService.updateSlot(slotId, userId, request, updatedImageUrl);
+    	
+        accountService.updateSlot(slotId, userId, request);
         return ResponseEntity.ok().build();
     }
 
