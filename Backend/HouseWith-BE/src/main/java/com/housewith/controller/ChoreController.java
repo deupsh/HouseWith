@@ -58,7 +58,7 @@ public class ChoreController {
     @GetMapping
     public ResponseEntity<List<ChoreResponse>> getChores(
             @AuthenticationPrincipal Long userId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         
         List<ChoreResponse> responses = choreService.getChoreByDate(userId, date);
         return ResponseEntity.ok(responses);

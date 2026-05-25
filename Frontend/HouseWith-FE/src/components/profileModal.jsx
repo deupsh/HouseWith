@@ -17,6 +17,8 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
   const [backgroundId, setBackgroundId] = useState(0);
   const [customImage, setCustomImage] = useState(null);
   const [isPushEnabled, setIsPushEnabled] = useState(true);
+  const [accountEmail, setAccountEmail] = useState('');
+  const [accountGroupName, setAccountGroupName] = useState('');
 
   // 로그아웃 확인 모달 상태 추가
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
@@ -44,6 +46,8 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
         setBackgroundId(initialData.background_id);
         setCustomImage(initialData.custom_profile_image);
         setPinCode('');
+        setAccountGroupName(localStorage.getItem('groupName') || '소속 그룹 없음');
+        setAccountEmail(localStorage.getItem('email') || '이메일 정보 없음');
       } else {
         setActiveTab(0);
         setNickname('');
@@ -243,11 +247,11 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
                 <div style={{ background: '#f8f9fa', borderRadius: '12px', padding: '15px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <span style={{ color: '#555' }}>이메일</span>
-                    <span style={{ fontWeight: '500', color: '#333' }}>hong@family.com</span> 
+                    <span style={{ fontWeight: '500', color: '#333' }}>{accountEmail}</span> 
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: '#555' }}>소속 그룹</span>
-                    <span style={{ fontWeight: '500', color: '#333' }}>홍가네</span>
+                    <span style={{ fontWeight: '500', color: '#333' }}>{accountGroupName}</span>
                   </div>
                 </div>
               </section>

@@ -27,6 +27,7 @@ const Login = ({ onLogin }) => {
       if (groupName) {
         localStorage.setItem('groupName', groupName);
       }
+      localStorage.setItem('email', email);
       onLogin(); 
 
     } catch (error) {

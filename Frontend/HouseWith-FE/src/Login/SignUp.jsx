@@ -98,10 +98,9 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
       const { accessToken, groupName: savedGroup, slots } = loginResponse.data;
       localStorage.setItem('accessToken', accessToken.replace('Bearer ', '')); 
       localStorage.setItem('groupName', savedGroup); 
-      localStorage.setItem('slots', JSON.stringify(slots)); 
-
-      // 3. 프로필 생성 모달 자동 띄우기를 위한 신규 유저 알림이 추가
-      sessionStorage.setItem('isNewUser', 'true');
+      localStorage.setItem('slots', JSON.stringify(slots));
+      localStorage.setItem('email', fullEmail);
+      localStorage.setItem('isNewUser', 'true');
 
       if (setIsLoggedIn) {
         setIsLoggedIn(true); 
@@ -109,8 +108,8 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
       if (showToast) {
         showToast("회원가입 성공!🎉");
       }
-      // 4. 토큰을 들고 Account로 이동 (Account에서 신규 유저 알림이 확인 후, 프로필 생성 모달 띄워줌)
-      navigate('/account'); 
+      
+      navigate('/account');
 
     } catch (error) {
       console.error("회원가입 실패:", error);

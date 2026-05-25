@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Lock, X, Settings, KeyRound, UserMinus, AlertTriangle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Account.css';
 import ProfileModal from '../components/ProfileModal';
 import { iconList, colorList } from '../constants/profileOptions';
@@ -18,6 +18,7 @@ const MOCK_PROFILES = [
 
 const Account = ({ onSelect, showToast}) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [profiles, setProfiles] = useState([]);
   const [groupName, setGroupName] = useState('');
   const [mode, setMode] = useState('normal'); 
@@ -42,15 +43,21 @@ const Account = ({ onSelect, showToast}) => {
 
   // 화면이 켜질 때 실행
   useEffect(() => {
+    // 🚨 1. 페이지 진입 시 가장 먼저 localStorage에서 징표를 확인하고 모달 열기!
+    const isNewUser = localStorage.getItem('isNewUser');
+    if (isNewUser === 'true') {
+      setIsModalOpen(true); 
+      localStorage.removeItem('isNewUser'); // 모달을 열었으니 찌꺼기가 안 남게 바로 삭제
+    }
+
+    // 2. 그 다음 슬롯 목록을 불러옵니다.
     const fetchProfiles = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        // 명세 3번 '슬롯' 섹션에 맞게 /api/slots 호출
         const response = await axios.get('/api/slots', {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // SlotItem DTO 명세에 맞춘 매핑
         const mappedProfiles = response.data.map(slot => ({
           profile_id: slot.slotId,
           nickname: slot.nickname,
@@ -63,10 +70,12 @@ const Account = ({ onSelect, showToast}) => {
         setProfiles(mappedProfiles);
         const savedGroupName = localStorage.getItem('groupName');
         if (savedGroupName) setGroupName(savedGroupName);
+
       } catch (error) {
         console.error("슬롯 조회 실패", error);
       }
     };
+    
     fetchProfiles();
   }, []);
   
@@ -156,16 +165,37 @@ const Account = ({ onSelect, showToast}) => {
 
     if (resetStep === 1) {
       if (!familyPassword) return setAuthError('비밀번호를 입력해주세요.');
+      
+      // 백엔드에 가족 비밀번호 검증 요청을 보냅니다.
       try {
+        // 회원 탈퇴에 쓰이는 것과 유사한 비밀번호 확인 API를 호출
+        await axios.post('/api/auth/verify-password', 
+          { password: familyPassword }, 
+          { headers: { Authorization: `Bearer ${token}` }}
+        );
+        
+        // 비밀번호가 맞아서 에러가 안 났다면 2단계로 넘어갑니다.
         setResetStep(2); 
       } catch (error) {
+        // 비밀번호가 틀리면 401이나 400 에러가 떨어지므로 여기서 잡힙니다.
         setAuthError('가족 계정 비밀번호가 일치하지 않습니다.');
-        if (familyPassword === '1234') setResetStep(2); 
+        
       }
     } else if (resetStep === 2) {
+      // 2단계 (새 PIN 저장) 로직
       if (newPinCode.length !== 6) return setAuthError('새 PIN 번호 6자리를 입력해주세요.');
       try {
-        await axios.patch(`/api/members/${resetTargetProfile.profile_id}/pin`, { new_pin: newPinCode }, { headers: { Authorization: `Bearer ${token}` }});
+        
+        const requestBody = {
+          password: familyPassword,        // 백엔드 에러 로그에서 찾은 필드명
+          accountPassword: familyPassword, // API 명세서에 적힌 필드명 (안전을 위해 둘 다 전송)
+          newPinCode: newPinCode           // 명세서에 적힌 새 PIN 번호 필드명
+        };
+
+        await axios.patch(`/api/slots/${resetTargetProfile.profile_id}/pin`, requestBody, { 
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
         if (showToast) showToast(`'${resetTargetProfile.nickname}'님의 PIN이 재설정되었습니다.`);
         setResetStep(0);
         setResetTargetProfile(null);
@@ -194,17 +224,32 @@ const Account = ({ onSelect, showToast}) => {
     e.preventDefault();
     if (!familyPassword) return setAuthError('비밀번호를 입력해주세요.');
     
-    if (window.confirm('정말 가족 계정을 삭제하시겠습니까? 모든 구성원의 기록이 영구 삭제됩니다.')) {
-      try {
-        const token = localStorage.getItem('accessToken');
-        await axios.delete('/api/auth/withdraw', { data: { password: familyPassword }, headers: { Authorization: `Bearer ${token}` }});
+    const token = localStorage.getItem('accessToken');
+
+    try {
+      // 1단계: 먼저 백엔드에 가족 비밀번호가 맞는지부터 검사합니다.
+      await axios.post('/api/auth/verify-password', 
+        { password: familyPassword }, 
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+
+      // 2단계: 비밀번호가 완벽히 맞았을 때만, 정말 탈퇴할 건지 마지막으로 물어봅니다.
+      if (window.confirm('정말 가족 계정을 삭제하시겠습니까? 모든 구성원의 기록이 영구 삭제됩니다.')) {
+        
+        // 3단계: 확인을 누르면 실제 탈퇴 API를 호출합니다.
+        await axios.delete('/api/auth/withdraw', { 
+          data: { password: familyPassword }, // (백엔드가 요구할 경우를 대비해 그대로 전송)
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
         alert('그동안 HouseWith를 이용해주셔서 감사합니다.');
         localStorage.removeItem('accessToken');
         navigate('/login');
         window.location.reload();
-      } catch (error) {
-        setAuthError('비밀번호가 일치하지 않습니다.');
       }
+    } catch (error) {
+      // 비밀번호가 틀리면 경고창을 띄우지 않고 바로 에러 메시지만 보여줍니다.
+      setAuthError('비밀번호가 일치하지 않습니다.');
     }
   };
 
