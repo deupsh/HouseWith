@@ -86,7 +86,7 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
     };
 
     try {
-      await axios.post('/api/auth/signup', newUserData);
+      await axios.post('/api/auth/register', newUserData);
 
       // 1. 가입 성공 직후, 방금 입력한 정보로 '자동 로그인' 수행
       const loginResponse = await axios.post('/api/auth/login', {
@@ -98,10 +98,9 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
       const { accessToken, groupName: savedGroup, slots } = loginResponse.data;
       localStorage.setItem('accessToken', accessToken.replace('Bearer ', '')); 
       localStorage.setItem('groupName', savedGroup); 
-      localStorage.setItem('slots', JSON.stringify(slots)); 
-
-      // 3. 프로필 생성 모달 자동 띄우기를 위한 신규 유저 알림이 추가
-      sessionStorage.setItem('isNewUser', 'true');
+      localStorage.setItem('slots', JSON.stringify(slots));
+      localStorage.setItem('email', fullEmail);
+      localStorage.setItem('isNewUser', 'true');
 
       if (setIsLoggedIn) {
         setIsLoggedIn(true); 
@@ -110,7 +109,6 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
         showToast("회원가입 성공!🎉");
       }
       
-      // 4. 토큰을 들고 Account로 이동 (Account에서 신규 유저 알림이 확인 후, 프로필 생성 모달 띄워줌)
       navigate('/account');
 
     } catch (error) {

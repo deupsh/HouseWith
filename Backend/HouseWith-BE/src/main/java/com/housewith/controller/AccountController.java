@@ -1,9 +1,12 @@
 package com.housewith.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,7 +61,7 @@ public class AccountController {
     @PostMapping("/auth/register")
     public ResponseEntity<Long> register(@Valid @RequestBody UserCreateRequest request) {
         Long userId = accountService.signUp(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userId); // 생성 성공 201 Created
+        return ResponseEntity.status(HttpStatus.CREATED).build(); // 생성 성공 201 Created
     }
 
     // 로그인 및 슬롯 목록 조회
@@ -66,6 +69,14 @@ public class AccountController {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = accountService.login(request);
         return ResponseEntity.ok(response); // 200 OK와 함께 복합 DTO 반환
+    }
+    
+    // 슬롯 목록 조회 (로그인 연관 X)
+    @GetMapping("/slots")
+    public ResponseEntity<List<SlotItem>> getSlots(
+            @AuthenticationPrincipal Long userId) {
+        List<SlotItem> slots = accountService.getSlots(userId);
+        return ResponseEntity.ok(slots);
     }
 
     // 가족 구성원 슬롯 생성
@@ -95,17 +106,11 @@ public class AccountController {
     // 가족 프로필 정보 수정
     @PutMapping(value = "/slots/{slotId}", consumes = "multipart/form-data")
     public ResponseEntity<Void> updateSlot(
-            @PathVariable Long slotId,
+    		@PathVariable("slotId") Long slotId,
             @AuthenticationPrincipal Long userId,
             @Valid @ModelAttribute SlotUpdateRequest request) {
-        
-        String updatedImageUrl = null;
-        MultipartFile file = request.getProfileImage();
-        if (file != null && !file.isEmpty()) {
-            updatedImageUrl = "https://housewith-s3-bucket.s3.amazonaws.com/profiles/" + file.getOriginalFilename();
-        }
-
-        accountService.updateSlot(slotId, userId, request, updatedImageUrl);
+    	
+        accountService.updateSlot(slotId, userId, request);
         return ResponseEntity.ok().build();
     }
 

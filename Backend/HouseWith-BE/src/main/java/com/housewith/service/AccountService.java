@@ -1,5 +1,6 @@
 package com.housewith.service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -44,6 +45,8 @@ public class AccountService {
     private final PasswordEncoder passwordEncoder;
     // JWT 토큰 발급용 필드 선언
     private final JwtTokenProvider jwtTokenProvider;
+    // 파일 처리 Service 선언
+    private final FileService fileService;
 
     // 이메일 중복 검사
     public boolean checkEmailDuplicate(EmailCheckRequest request) {
@@ -90,6 +93,7 @@ public class AccountService {
         List<SlotItem> slots = profiles.stream()
                 .map(p -> new SlotItem(
                         p.getId(),
+                        p.getPinCode(),
                         p.getNickname(),
                         p.getEmojiId(),
                         p.getBackgroundId(),
@@ -106,6 +110,21 @@ public class AccountService {
                 user.getGroupName(),
                 slots
         );
+    }
+    
+    // 단순 슬롯 조회 (로그인과 연관 X)
+    public List<SlotItem> getSlots(Long userId) {
+        List<Profile> profiles = profileRepository.findByUser_Id(userId);
+        return profiles.stream()
+                .map(p -> new SlotItem(
+                        p.getId(),
+                        p.getPinCode(),
+                        p.getNickname(),
+                        p.getEmojiId(),
+                        p.getBackgroundId(),
+                        p.getCustomProfileImage()
+                ))
+                .toList();
     }
 
     // 가족 구성원 슬롯
@@ -133,6 +152,7 @@ public class AccountService {
         // API 명세서에 맞게 SlotItem DTO로 변환하여 리턴
         return new SlotItem(
                 savedProfile.getId(),
+                savedProfile.getPinCode(),
                 savedProfile.getNickname(),
                 savedProfile.getEmojiId(),
                 savedProfile.getBackgroundId(),
@@ -169,8 +189,8 @@ public class AccountService {
 
     // 가족 프로필 정보 수정
     @Transactional
-    public void updateSlot(Long slotId, Long userId, SlotUpdateRequest request, String updatedImageUrl) {
-        Profile profile = profileRepository.findById(slotId)
+    public void updateSlot(Long slotId, Long userId, SlotUpdateRequest request) {
+    	Profile profile = profileRepository.findById(slotId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로필 슬롯입니다."));
 
      // 권한 방어벽 추가: 내 가족 슬롯이 맞는지 검증
@@ -178,12 +198,23 @@ public class AccountService {
             throw new IllegalArgumentException("수정 권한이 없습니다.");
         }
         
+        String savedFileUrl = null;
+        
+     // 파일이 있을 때만 새 경로로 덮어씁니다.
+        if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
+            try {
+                savedFileUrl = fileService.saveFile(request.getProfileImage(), "profile");
+            } catch (IOException e) {
+                throw new RuntimeException("파일 저장 실패", e);
+            }
+        }
+        
         // 엔티티 정보 갱신 (실제 Profile 엔티티의 변경 메서드 호출)
         profile.modifyProfileDetails(
                 request.getNickname(),
                 request.getProfileEmoji(),
                 request.getProfileBackground(),
-                updatedImageUrl
+                savedFileUrl
         );
     }
 

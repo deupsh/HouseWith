@@ -24,13 +24,30 @@ const FamilyNote = () => {
   const fetchFamilyNotes = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('/api/family-notes', {
+      
+      // 오늘의 가족 기분 조회
+      const response = await axios.get('/api/moods', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setFamilyNotes(response.data);
+
+      // 현재 접속 중인 내 슬롯 ID를 가져오기 (Account.jsx에서 저장해둬야 함)
+      const currentSlotId = Number(localStorage.getItem('currentSlotId'));
+
+      // 백엔드 MoodResponse DTO에 맞춰 프론트엔드 변수명으로 매핑
+      const mappedNotes = response.data.map(mood => ({
+        id: mood.slotId,
+        name: mood.nickname,
+        nickname: mood.nickname,
+        avatar: mood.profileEmoji, // 이모지 매핑
+        note: mood.content,        // 백엔드는 content, 프론트는 note
+        noteUpdatedAt: mood.createdAt,
+        lastLogin: mood.lastAccessTime,
+        isCurrentUser: mood.slotId === currentSlotId // 내가 누군지 판별
+      }));
+
+      setFamilyNotes(mappedNotes);
     } catch (error) {
       console.error("가족 노트 조회 실패:", error);
-      // 백엔드가 아직 준비 안 됐으면 더미 데이터 세팅
       setFamilyNotes(MOCK_NOTES);
     }
   };
@@ -74,24 +91,17 @@ const FamilyNote = () => {
     try {
       const token = localStorage.getItem('accessToken');
       
-      // 백엔드에 내 새로운 상태 메시지 전송
-      await axios.put('/api/family-notes/me', { note: newNote.trim() }, {
+      // 오늘의 기분 작성 (POST /api/moods)
+      // MoodCreateRequest DTO에 맞춰 'note'가 아닌 'content'로 전송
+      await axios.post('/api/moods', { content: newNote.trim() }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // API 통신 성공 시, 화면 갱신을 위해 데이터 다시 가져오기
       fetchFamilyNotes();
       setIsModalOpen(false);
 
     } catch (error) {
       console.error("노트 저장 실패:", error);
-      
-      // 🚨 통신 실패 시 UI 임시 업데이트용 Fallback
-      setFamilyNotes(prevNotes => 
-        prevNotes.map(n => 
-          n.isCurrentUser ? { ...n, note: newNote.trim(), noteUpdatedAt: new Date().toISOString() } : n
-        )
-      );
       setIsModalOpen(false);
     }
   };

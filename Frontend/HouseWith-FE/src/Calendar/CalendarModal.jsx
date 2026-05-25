@@ -3,7 +3,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import { X } from 'lucide-react';
 import './Calendar.css'; 
 
-const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete, members, currentUser }) => {
+const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete, members, currentUserSlotId}) => {
   const [title, setTitle] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -12,6 +12,28 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
   const [error, setError] = useState('');
 
   const [internalMode, setInternalMode] = useState(mode);
+
+  // [추가] 시작 날짜를 변경할 때 실행할 함수
+  const handleStartDateChange = (e) => {
+    const newStartDate = e.target.value;
+    setStartDate(newStartDate);
+    
+    // 시작일이 종료일보다 늦어지면, 종료일도 강제로 시작일과 맞춰줌
+    if (endDate && newStartDate > endDate) {
+      setEndDate(newStartDate);
+    }
+  };
+
+  // [추가] 종료 날짜를 변경할 때 실행할 함수
+  const handleEndDateChange = (e) => {
+    const newEndDate = e.target.value;
+    setEndDate(newEndDate);
+    
+    // 종료일이 시작일보다 빨라지면, 시작일도 강제로 종료일과 맞춰줌
+    if (startDate && newEndDate < startDate) {
+      setStartDate(newEndDate);
+    }
+  };
 
   useEffect(() => {
     setInternalMode(mode);
@@ -34,11 +56,11 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
 
   if (!isOpen) return null;
 
-  const handleParticipantToggle = (nickname) => {
-    if (selectedParticipants.includes(nickname)) {
-      setSelectedParticipants(selectedParticipants.filter(p => p !== nickname));
+  const handleParticipantToggle = (slotId) => {
+    if (selectedParticipants.includes(slotId)) {
+      setSelectedParticipants(selectedParticipants.filter(id => id !== slotId));
     } else {
-      setSelectedParticipants([...selectedParticipants, nickname]);
+      setSelectedParticipants([...selectedParticipants, slotId]);
     }
   };
 
@@ -51,7 +73,7 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
     }
 
     const finalParticipants = selectedParticipants.length === 0 
-      ? [internalMode === 'edit' ? initialData.writer : currentUser] 
+      ? [currentUserSlotId] 
       : selectedParticipants;
 
     const eventPayload = {
@@ -60,8 +82,7 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
       startDate,
       endDate,
       memo: memo.slice(0, 100), 
-      writer: internalMode === 'edit' ? initialData.writer : currentUser,
-      participants: finalParticipants
+      participantSlotIds: finalParticipants
     };
 
     onSubmit(eventPayload);
@@ -116,7 +137,7 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
             <div className="form-field">
               <label>참여 멤버 <span className="sub-label">(작성자: {initialData.writer})</span></label>
               <div className="member-select-container">
-                {(initialData.participants || []).map(p => (
+                {(initialData.participantNicknames || []).map(p => (
                   <button key={p} type="button" className="member-btn selected" style={{ cursor: 'default' }}>
                     {p}
                   </button>
@@ -148,12 +169,22 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
 
               <div className="form-field">
                 <label>시작 시간</label>
-                <input type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+                <input 
+                  type="datetime-local" 
+                  value={startDate} 
+                  onChange={handleStartDateChange} // 🚨 변경됨
+                  required 
+                />
               </div>
 
               <div className="form-field">
                 <label>종료 시간</label>
-                <input type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+                <input 
+                  type="datetime-local" 
+                  value={endDate} 
+                  onChange={handleEndDateChange} // 🚨 변경됨
+                  required 
+                />
               </div>
 
               <div className="form-field">
@@ -167,17 +198,17 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
               <div className="form-field">
                 <label>참여 멤버 <span className="sub-label">(미선택 시 자동 포함)</span></label>
                 <div className="member-select-container">
-                  {(members || []).map(m => (
-                    <button
-                      key={m}
-                      type="button" 
-                      className={`member-btn ${selectedParticipants.includes(m) ? 'selected' : ''}`}
-                      onClick={() => handleParticipantToggle(m)}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
+                {(members || []).map(m => (
+                  <button
+                    key={m.slotId}
+                    type="button" 
+                    className={`member-btn ${selectedParticipants.includes(m.slotId) ? 'selected' : ''}`}
+                    onClick={() => handleParticipantToggle(m.slotId)}
+                  >
+                    {m.nickname}
+                  </button>
+                ))}
+              </div>
               </div>
 
               <ErrorMessage message={error} />

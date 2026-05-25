@@ -15,6 +15,7 @@ import lombok.Getter;
 public class SlotItem {
 
     private Long slotId; // 슬롯 PK
+    private String pinCode; // 슬롯 PIN 번호
     private String nickname; // 닉네임
     private String profileEmoji; // 이모지 경로
     private Integer profileBackground; // 배경색 번호
