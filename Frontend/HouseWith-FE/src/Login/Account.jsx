@@ -42,40 +42,41 @@ const Account = ({ onSelect, showToast}) => {
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
   // 화면이 켜질 때 실행
+  const fetchProfiles = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.get('/api/slots', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const mappedProfiles = response.data.map(slot => ({
+        profile_id: slot.slotId,
+        nickname: slot.nickname,
+        profile_type: slot.customProfileImage ? 1 : 0,
+        emoji_id: slot.profileEmoji,
+        background_id: slot.profileBackground,
+        custom_profile_image: slot.customProfileImage,
+        has_pin: slot.pinCode !== null && slot.pinCode !== ""
+      }));
+      setProfiles(mappedProfiles);
+      const savedGroupName = localStorage.getItem('groupName');
+      if (savedGroupName) setGroupName(savedGroupName);
+
+    } catch (error) {
+      console.error("슬롯 조회 실패", error);
+    }
+  };
+
+  // 2. 화면이 처음 켜질 때 딱 한 번 실행되는 울타리
   useEffect(() => {
-    // 🚨 1. 페이지 진입 시 가장 먼저 localStorage에서 징표를 확인하고 모달 열기!
+    // 가장 먼저 localStorage에서 징표를 확인하고 모달 열기!
     const isNewUser = localStorage.getItem('isNewUser');
     if (isNewUser === 'true') {
       setIsModalOpen(true); 
       localStorage.removeItem('isNewUser'); // 모달을 열었으니 찌꺼기가 안 남게 바로 삭제
     }
 
-    // 2. 그 다음 슬롯 목록을 불러옵니다.
-    const fetchProfiles = async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        const response = await axios.get('/api/slots', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        const mappedProfiles = response.data.map(slot => ({
-          profile_id: slot.slotId,
-          nickname: slot.nickname,
-          profile_type: slot.customProfileImage ? 1 : 0,
-          emoji_id: slot.profileEmoji,
-          background_id: slot.profileBackground,
-          custom_profile_image: slot.customProfileImage,
-          has_pin: slot.pinCode !== null && slot.pinCode !== ""
-        }));
-        setProfiles(mappedProfiles);
-        const savedGroupName = localStorage.getItem('groupName');
-        if (savedGroupName) setGroupName(savedGroupName);
-
-      } catch (error) {
-        console.error("슬롯 조회 실패", error);
-      }
-    };
-    
+    // 울타리 밖에 만들어둔 공용 함수를 여기서 호출합니다.
     fetchProfiles();
   }, []);
   
