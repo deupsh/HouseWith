@@ -267,14 +267,15 @@ const Account = ({ onSelect, showToast}) => {
       submitData.append('profileImage', formData.profileImage);
     }
 
-    if (mode === 'create') {
+    if (!formData.id) { 
+      // 1. ID가 없으면 새 프로필 생성 (POST)
       submitData.append('pinCode', formData.pin_code || '');
       await axios.post('/api/slots', submitData, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       if (showToast) showToast("가족 구성원이 추가되었습니다!");
     } else {
-      // 🚨 수정(PUT) 로직: 주소를 /api/slots/{slotId}로 변경
+      // 2. ID가 있으면 기존 프로필 수정 (PUT)
       await axios.put(`/api/slots/${formData.id}`, submitData, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
