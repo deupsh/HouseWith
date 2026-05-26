@@ -95,7 +95,7 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
       profile_type: activeTab,
       emoji_id: activeTab === 0 ? emojiId : 0,
       background_id: activeTab === 0 ? backgroundId : 0,
-      profileImage: fileInputRef.current.files[0] || null // 🚨 Base64 대신 실제 파일 객체 전달
+      profileImage: fileInputRef.current ? fileInputRef.current.files[0] : null
     });
   };
 
