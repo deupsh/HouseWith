@@ -28,7 +28,7 @@ const Gallery = () => {
   const fetchPhotos = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('/api/gallery', {
+      const response = await axios.get('/api/photos', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -72,7 +72,7 @@ const Gallery = () => {
   const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.delete(`/api/gallery/${photoToDelete}`, {
+      await axios.delete(`/api/photos/${photoToDelete}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -92,40 +92,81 @@ const Gallery = () => {
   const handleSavePhoto = async (photoData) => {
     try {
       const token = localStorage.getItem('accessToken');
-      
+      const profileId = localStorage.getItem('currentSlotId'); // 현재 프로필 ID 가져오기
+
       if (editingPhoto) {
-        // [수정 - PUT]
-        const response = await axios.put(`/api/gallery/${editingPhoto.id}`, photoData, {
-          headers: { Authorization: `Bearer ${token}` }
+        // ----------------------------------------------------
+        // [수정 - PUT] : 백엔드의 @ModelAttribute 방식에 맞춤
+        // ----------------------------------------------------
+        const formData = new FormData();
+        formData.append('title', photoData.title);
+        formData.append('date', photoData.date);
+        formData.append('album', photoData.album);
+        
+        // 새로 첨부한 파일이 있을 때만 넘겨줌
+        if (photoData.file) {
+          formData.append('photo', photoData.file); 
+        }
+
+        await axios.put(`/api/photos/${editingPhoto.id}`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
         });
-        setPhotos(photos.map(p => p.id === editingPhoto.id ? response.data : p));
+
+        // 성공 시 로컬 화면 갱신
+        setPhotos(photos.map(p => 
+          p.id === editingPhoto.id 
+            ? { ...p, title: photoData.title, date: photoData.date, album: photoData.album, url: photoData.url } 
+            : p
+        ));
+
       } else {
-        // [등록 - POST]
-        const response = await axios.post('/api/gallery', photoData, {
-          headers: { Authorization: `Bearer ${token}` } // (주의: 실제 파일 업로드 시에는 Content-Type: multipart/form-data 가 필요할 수 있습니다)
+        // ----------------------------------------------------
+        // [등록 - POST] : 백엔드의 @RequestPart 방식에 맞춤
+        // ----------------------------------------------------
+        const formData = new FormData();
+        formData.append('file', photoData.file); // 파일 객체
+
+        // 메타데이터는 Blob으로 감싸서 application/json 타입으로 넘김
+        const metadata = {
+          title: photoData.title,
+          date: photoData.date,
+          album: photoData.album
+        };
+        formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+
+        const response = await axios.post('/api/photos', formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            ProfileId: profileId, // 누락되었던 헤더 추가!
+            'Content-Type': 'multipart/form-data' 
+          }
         });
-        setPhotos([response.data, ...photos]); 
+
+        // 성공 시 로컬 화면에 방금 올린 사진 추가 (response.data에 새 사진의 ID가 들어옴)
+        const newPhoto = {
+          id: response.data, 
+          title: photoData.title,
+          date: photoData.date,
+          album: photoData.album,
+          url: photoData.url, 
+          isThumbnail: false
+        };
+        setPhotos([newPhoto, ...photos]); 
       }
 
+      // 새 앨범 이름이 입력되었다면 앨범 탭에 추가
       if (!albums.includes(photoData.album)) {
         setAlbums([...albums, photoData.album]);
       }
-      setIsUploadOpen(false);
+      
+      setIsUploadOpen(false); // 모달 닫기
 
     } catch (error) {
       console.error("사진 저장 실패:", error);
-      
-      // Fallback: 로컬 저장
-      if (editingPhoto) {
-        setPhotos(photos.map(p => p.id === editingPhoto.id ? { ...p, ...photoData } : p));
-      } else {
-        const newPhoto = { ...photoData, id: Date.now(), isThumbnail: false };
-        setPhotos([newPhoto, ...photos]); 
-      }
-      if (!albums.includes(photoData.album)) {
-        setAlbums([...albums, photoData.album]);
-      }
-      setIsUploadOpen(false);
+      alert("사진 저장 중 오류가 발생했습니다.");
     }
   };
 
@@ -135,7 +176,7 @@ const Gallery = () => {
       const token = localStorage.getItem('accessToken');
       
       // 특정 앨범의 대표 사진 상태만 토글 업데이트
-      await axios.patch(`/api/gallery/${photoId}/thumbnail`, 
+      await axios.patch(`/api/photos/${photoId}/thumbnail`, 
         { isThumbnail: !currentIsThumbnail, album: albumName }, 
         { headers: { Authorization: `Bearer ${token}` }}
       );
