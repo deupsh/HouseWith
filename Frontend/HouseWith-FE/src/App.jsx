@@ -87,7 +87,7 @@ function App() {
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/todo" element={<Todo />} />
               <Route path="/gallery" element={<Gallery />} />
-              <Route path="/qna" element={<QnA />} />
+              <Route path="/qna" element={<QnA currentProfile={currentProfile} />} />
               <Route path="/analysis" element={<Analysis />} />
               <Route path="*" element={<Navigate to="/calendar" />} />
             </Route>
