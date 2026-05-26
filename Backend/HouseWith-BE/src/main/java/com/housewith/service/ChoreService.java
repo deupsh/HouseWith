@@ -91,6 +91,7 @@ public class ChoreService {
 
         // 기존 매핑된 담당자 목록을 전부 지우고 새로 매핑
         choreParticipantRepository.deleteByChoreId(chore.getId());
+        choreParticipantRepository.flush();
         saveParticipants(chore.getId(), request.getParticipantSlotIds());
     }
 
@@ -133,7 +134,7 @@ public class ChoreService {
                         Profile profile = profileMap.get(p.getProfileId());
                         return new ParticipantInfo(
                                 profile.getId(), profile.getNickname(), String.valueOf(profile.getEmojiId()),
-                                profile.getBackgroundId(), profile.getCustomProfileImage()
+                                profile.getBackgroundId(), profile.getCustomProfileImage(), profile.getProfileType()
                         );
                     }).toList();
 
@@ -155,11 +156,11 @@ public class ChoreService {
         int value = Integer.parseInt(chore.getCycleValue());
         
         if (type == 2) { // 2: 매주 (0:일 ~ 6:토)
-            int currentDayOfWeek = date.getDayOfWeek().getValue() % 7; // Java(1~7) -> JS식(0~6) 변환
+        	int currentDayOfWeek = date.getDayOfWeek().getValue() - 1; // Java(1~7) -> JS식(0~6) 변환
             return currentDayOfWeek == value;
         } 
         if (type == 3) { // 3: 격주 (주차 계산 필요)
-            int currentDayOfWeek = date.getDayOfWeek().getValue() % 7;
+        	int currentDayOfWeek = date.getDayOfWeek().getValue() - 1;
             if (currentDayOfWeek != value) return false;
             int currentWeek = date.get(WeekFields.ISO.weekOfWeekBasedYear());
             return currentWeek % 2 == 0; // 짝수 주차에만 노출 (기획에 따라 홀수로 변경 가능)

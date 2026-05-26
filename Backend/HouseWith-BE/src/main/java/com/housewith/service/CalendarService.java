@@ -160,7 +160,8 @@ public class CalendarService {
                         p.getNickname(),
                         p.getEmojiId(), // String 타입으로 변경된 이모지 경로
                         p.getBackgroundId(),
-                        p.getCustomProfileImage()
+                        p.getCustomProfileImage(),
+                        p.getProfileType()
                 ))
                 .toList();
 

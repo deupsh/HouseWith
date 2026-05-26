@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -47,7 +48,7 @@ public class ChoreController {
     // 집안일 수정
     @PutMapping("/{choreId}")
     public ResponseEntity<Void> updateChore(
-            @PathVariable Long choreId,
+    		@PathVariable("choreId") Long choreId,
             @Valid @RequestBody ChoreUpdateRequest request) {
         
         choreService.updateChore(choreId, request);
@@ -65,9 +66,10 @@ public class ChoreController {
     }
 
     // 집안일 완료 처리 (토글)
+    @Transactional
     @PatchMapping("/{choreId}/done")
     public ResponseEntity<Void> toggleChoreDone(
-            @PathVariable Long choreId,
+    		@PathVariable("choreId") Long choreId,
             @RequestHeader("X-Profile-Id") Long profileId) {
         
         LocalDate today = LocalDate.now(); 
@@ -77,7 +79,7 @@ public class ChoreController {
 
     // 집안일 삭제
     @DeleteMapping("/{choreId}")
-    public ResponseEntity<Void> deleteChore(@PathVariable Long choreId) {
+    public ResponseEntity<Void> deleteChore(@PathVariable("choreId") Long choreId) {
         choreService.deleteChore(choreId);
         return ResponseEntity.noContent().build(); 
     }

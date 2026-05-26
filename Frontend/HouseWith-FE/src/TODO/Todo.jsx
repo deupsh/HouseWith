@@ -1,30 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { iconMap } from '../constants/profileOptions';
+import { iconList, colorList } from '../constants/profileOptions';
 import './Todo.css';
-
-const MOCK_MEMBERS = [
-  { slotId: 1, nickname: '엄마', profileEmoji: 1, profileBackground: 1, customProfileImage: null },
-  { slotId: 2, nickname: '아빠', profileEmoji: 2, profileBackground: 2, customProfileImage: null },
-  { slotId: 3, nickname: '딸', profileEmoji: 3, profileBackground: 3, customProfileImage: null },
-  { slotId: 4, nickname: '아들', profileEmoji: 4, profileBackground: 4, customProfileImage: null }
-];
-
-const DUMMY_CHORES = [
-  { choreId: 1, title: '설거지', cycleType: 1, scheduledDate: null, isDone: false, participants: [MOCK_MEMBERS[0]] },
-  { choreId: 2, title: '분리수거', cycleType: 2, scheduledDate: 2, isDone: false, participants: [MOCK_MEMBERS[1]] },
-];
 
 const WEEK_DAYS = ['월', '화', '수', '목', '금', '토', '일'];
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('accessToken');
-  return { headers: { Authorization: `Bearer ${token}` } };
+  const profileId = localStorage.getItem('currentSlotId');
+  return { headers: { Authorization: `Bearer ${token}`, 'X-Profile-Id': profileId } };
 };
 
 const Todo = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [todos, setTodos] = useState(DUMMY_CHORES); // 더미 데이터로 초기화
+  const [todos, setTodos] = useState();
+  const [familyMembers, setFamilyMembers] = useState([]);
 
   // 데이터 불러오기
   const fetchChores = async () => {
@@ -42,10 +32,33 @@ const Todo = () => {
     }
   };
 
+  const fetchFamilyMembers = async () => {
+    try {
+      const response = await axios.get('/api/slots', getAuthHeaders());
+      
+      const members = response.data.map(slot => ({
+        slotId: slot.slotId,
+        nickname: slot.nickname,
+        profileEmoji: slot.profileEmoji, 
+        profileBackground: slot.profileBackground,
+        customProfileImage: slot.customProfileImage,
+        profile_type: slot.customProfileImage ? 1 : 0
+      }));
+      
+      setFamilyMembers(members);
+    } catch (error) {
+      console.error("가족 목록 불러오기 실패:", error);
+    }
+  };
+
   // 날짜가 바뀔 때마다 데이터 다시 로드
   useEffect(() => {
     fetchChores();
   }, [selectedDate]);
+
+  useEffect(() => {
+    fetchFamilyMembers();
+  }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -57,31 +70,66 @@ const Todo = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [todoToDelete, setTodoToDelete] = useState(null);
 
-  const getAvatar = (emojiId) => {
-    const imageSrc = iconMap[String(emojiId)] || iconMap['1']; 
+  const getAvatar = (member) => {
+    // 🚨 1. 데이터가 'profileType'으로 오든 'profile_type'으로 오든 둘 다 확인합니다.
+    const pType = member.profileType !== undefined ? member.profileType : member.profile_type;
     
+    // 1. 프로필 사진이 있는 경우 (타입이 1)
+    if (pType === 1) {
+      return (
+        <img 
+          src={`http://localhost/uploads${member.customProfileImage}`} 
+          alt={member.nickname} 
+          style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} 
+        />
+      );
+    }
+
+    // 2. 사진 없는 경우
+    // 🚨 여기서도 혹시 모를 타입 불일치를 위해 Number()로 감싸주세요.
+    const imageSrc = iconList[Number(member.profileEmoji)] || iconList[0]; 
+    const bgColor = colorList[member.profileBackground] || '#e0e0e0'; 
+
     return (
-      <img 
-        src={imageSrc} 
-        alt={`profile-${emojiId}`} 
-        style={{ 
-          width: '24px', 
-          height: '24px', 
-          borderRadius: '50%', 
-          objectFit: 'cover',
-          verticalAlign: 'middle',
-          marginRight: '4px' 
-        }} 
-      />
+      <div style={{ 
+        display: 'inline-block', width: '24px', height: '24px', 
+        backgroundColor: bgColor, borderRadius: '50%', 
+        overflow: 'hidden'
+      }}>
+        <img 
+          src={imageSrc} 
+          alt="emoji" 
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+        />
+      </div>
     );
   };
 
   const handleToggleComplete = async (id) => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (selectedDate !== todayStr) {
+      alert("집안일 완료 체크는 오늘 날짜에만 가능합니다.");
+      return;
+    }
+    // 1. 화면에서 먼저 상태를 반전시켜 아래(혹은 위)로 보냅니다.
+    setTodos(prevTodos => 
+      prevTodos.map(todo => 
+        todo.choreId === id ? { ...todo, isDone: !todo.isDone } : todo
+      )
+    );
+
     try {
+      // 2. 서버에 완료 요청을 보냅니다.
       await axios.patch(`/api/chores/${id}/done`, {}, getAuthHeaders());
-      fetchChores(); // 서버 반영 후 목록 갱신
+
     } catch (error) {
       console.error("완료 처리 실패:", error);
+      setTodos(prevTodos => 
+        prevTodos.map(todo => 
+          todo.choreId === id ? { ...todo, isDone: !todo.isDone } : todo
+        )
+      );
+      alert("완료 처리에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -173,8 +221,8 @@ const Todo = () => {
   };
 
   const todoList = Array.isArray(todos) ? todos : [];
-  const inProgressTodos = todos.filter(t => !t.isDone);
-  const completedTodos = todos.filter(t => t.isDone);
+  const inProgressTodos = todoList.filter(t => !t.isDone);
+  const completedTodos = todoList.filter(t => t.isDone);
 
   return (
     <div className="todo-page">
@@ -197,6 +245,7 @@ const Todo = () => {
               type="checkbox" 
               className="todo-check" 
               checked={todo.isDone}
+              disabled={selectedDate !== new Date().toISOString().split('T')[0]}
               onChange={() => handleToggleComplete(todo.choreId)}
             />
             <div className="todo-info">
@@ -206,7 +255,7 @@ const Todo = () => {
             <div className="todo-assignee">
               {todo.participants.map(member => (
                 <span key={member.slotId} title={member.nickname} className="avatar-mini">
-                  {getAvatar(member.profileEmoji)}
+                  {getAvatar(member)}
                 </span>
               ))}
             </div>
@@ -226,6 +275,7 @@ const Todo = () => {
               type="checkbox" 
               className="todo-check" 
               checked={todo.isDone}
+              disabled={selectedDate !== new Date().toISOString().split('T')[0]}
               onChange={() => handleToggleComplete(todo.choreId)}
             />
             <div className="todo-info">
@@ -235,7 +285,7 @@ const Todo = () => {
             <div className="todo-assignee">
               {todo.participants.map(member => (
                 <span key={member.slotId} title={member.nickname} className="avatar-mini">
-                  {getAvatar(member.profileEmoji)}
+                  {getAvatar(member)}
                 </span>
               ))}
             </div>
@@ -306,9 +356,14 @@ const Todo = () => {
               <div className="form-field">
                 <label>담당자 선택 (1명 이상)</label>
                 <div className="member-select-container">
-                  {MOCK_MEMBERS.map(m => (
-                    <button key={m.slotId} type="button" className={`member-btn ${participantSlotIds.includes(m.slotId) ? 'selected' : ''}`} onClick={() => handleAssigneeToggle(m.slotId)}>
-                      {getAvatar(m.profileEmoji)} {m.nickname}
+                  {familyMembers.map(m => (
+                    <button 
+                      key={m.slotId} 
+                      type="button" 
+                      className={`member-btn ${participantSlotIds.includes(m.slotId) ? 'selected' : ''}`} 
+                      onClick={() => handleAssigneeToggle(m.slotId)}
+                    >
+                      {getAvatar(m)} {m.nickname}
                     </button>
                   ))}
                 </div>
