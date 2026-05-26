@@ -69,6 +69,17 @@ public class Photo {
         this.fileName = fileName;
         this.isRepresentative = (isRepresentative != null) ? isRepresentative : false;
     }
+
+    public void updatePhotoInfo(String title, LocalDate photoDate, String albumName, String fileName) {
+        this.title = title;
+        this.photoDate = photoDate != null ? photoDate : this.photoDate;
+        this.albumName = albumName != null ? albumName : this.albumName;
+        
+        // 새로운 파일명이 전달되었을 때만 파일명 교체
+        if (fileName != null) {
+            this.fileName = fileName;
+        }
+    }
     
     // 일정 수정 메소드 (JPA의 .save 공통 메소드가 아닌 Entity에 작성)
     public void changeRepresentativeStatus(Boolean status) {

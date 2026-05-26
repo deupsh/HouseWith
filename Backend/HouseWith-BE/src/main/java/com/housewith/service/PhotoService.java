@@ -11,6 +11,7 @@ import com.housewith.domain.account.User;
 import com.housewith.domain.photo.Photo;
 import com.housewith.dto.photo.PhotoDetailResponse;
 import com.housewith.dto.photo.PhotoSummaryResponse;
+import com.housewith.dto.photo.PhotoUpdateRequest;
 import com.housewith.dto.photo.PhotoUploadRequest;
 import com.housewith.persistence.account.ProfileRepository;
 import com.housewith.persistence.account.UserRepository;
@@ -132,5 +133,30 @@ public class PhotoService {
         }
 
         photoRepository.delete(photo);
+    }
+
+    // 7_6 사진 정보 및 파일 수정 로직
+    @Transactional
+    public void updatePhoto(Long photoId, Long userId, PhotoUpdateRequest request, String newStoredFileName) {
+        // 1. 수정할 대상 원본 사진 조회
+        Photo photo = photoRepository.findById(photoId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사진입니다."));
+
+        // 2. 권한 방어 체크 (기존 다른 메서드들과 동일한 구조 유지)
+        if (!photo.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("해당 사진에 대한 접근 권한이 없습니다.");
+        }
+
+        // 파일 저장 처리는 컨트롤러 단에서 실행하여 새로운 파일명(newStoredFileName)을 넘겨받거나,
+        // 서비스 내부에서 처리할 경우 기존 파일을 지우는 유틸 로직을 이곳에 구성합니다.
+        // 예: if (newStoredFileName != null) { fileUtil.delete(photo.getFileName()); }
+
+        // 3. Setter를 쓰지 않고 도메인 엔티티 비즈니스 메서드 호출 (더티 체킹 발동)
+        photo.updatePhotoInfo(
+                request.getTitle(),
+                request.getDate(),
+                request.getAlbum(),
+                newStoredFileName // 파일 업로드가 없다면 null이 전달되어 기존 fileName 유지됨
+        );
     }
 }

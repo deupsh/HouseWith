@@ -152,10 +152,6 @@ const Account = ({ onSelect, showToast}) => {
       navigate('/calendar');
     } catch (error) {
       setPinError('PIN 번호가 일치하지 않습니다.');
-      if (pinInput === '123456') { 
-        setPinModalProfile(null);
-        onSelect(pinModalProfile);
-      }
     }
   };
 

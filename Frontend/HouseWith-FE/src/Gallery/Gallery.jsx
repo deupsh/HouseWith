@@ -28,9 +28,11 @@ const Gallery = () => {
   const fetchPhotos = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('/api/gallery', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const currentProfileId = localStorage.getItem('currentSlotId'); // 현재 로그인된 프로필 ID 꺼내기
+      const response = await axios.get('/api/photos', {
+        headers: { Authorization: `Bearer ${token}` ,
+        ProfileId: currentProfileId
+      }});
       
       setPhotos(response.data);
       
@@ -72,7 +74,7 @@ const Gallery = () => {
   const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.delete(`/api/gallery/${photoToDelete}`, {
+      await axios.delete(`/api/photos/${photoToDelete}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -92,16 +94,17 @@ const Gallery = () => {
   const handleSavePhoto = async (photoData) => {
     try {
       const token = localStorage.getItem('accessToken');
+      const currentProfileId = localStorage.getItem('currentSlotId');
       
       if (editingPhoto) {
         // [수정 - PUT]
-        const response = await axios.put(`/api/gallery/${editingPhoto.id}`, photoData, {
+        const response = await axios.put(`/api/photos/${editingPhoto.id}`, photoData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPhotos(photos.map(p => p.id === editingPhoto.id ? response.data : p));
       } else {
         // [등록 - POST]
-        const response = await axios.post('/api/gallery', photoData, {
+        const response = await axios.post('/api/photos', photoData, {
           headers: { Authorization: `Bearer ${token}` } // (주의: 실제 파일 업로드 시에는 Content-Type: multipart/form-data 가 필요할 수 있습니다)
         });
         setPhotos([response.data, ...photos]); 
@@ -135,7 +138,7 @@ const Gallery = () => {
       const token = localStorage.getItem('accessToken');
       
       // 특정 앨범의 대표 사진 상태만 토글 업데이트
-      await axios.patch(`/api/gallery/${photoId}/thumbnail`, 
+      await axios.patch(`/api/photos/${photoId}/thumbnail`, 
         { isThumbnail: !currentIsThumbnail, album: albumName }, 
         { headers: { Authorization: `Bearer ${token}` }}
       );

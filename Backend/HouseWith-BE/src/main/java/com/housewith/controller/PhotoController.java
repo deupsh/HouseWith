@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.housewith.dto.photo.PhotoDetailResponse;
 import com.housewith.dto.photo.PhotoSummaryResponse;
+import com.housewith.dto.photo.PhotoUpdateRequest;
 import com.housewith.dto.photo.PhotoUploadRequest;
 import com.housewith.service.PhotoService;
 
@@ -97,5 +99,24 @@ public class PhotoController {
 
         photoService.deletePhoto(photoId, userId);
         return ResponseEntity.noContent().build(); // 204 바디 없음 성공
+    }
+
+    // 7_6 사진 정보 및 파일 수정 (PUT)
+    @PutMapping("/{photoId}")
+    public ResponseEntity<Void> updatePhoto(
+            @PathVariable("photoId") Long photoId,
+            @AuthenticationPrincipal Long userId, // 세션 토큰에서 유저 고유 ID 추출
+            @Valid @ModelAttribute PhotoUpdateRequest request) { // 🚨 폼 데이터 파싱을 위해 @ModelAttribute 필수
+
+        String newStoredFileName = null;
+
+        // 사용자가 수정 창에서 새로운 이미지 파일을 첨부한 경우 파일 저장 프로세스 진행
+        if (request.getPhoto() != null && !request.getPhoto().isEmpty()) {
+            // 프로젝트 내부에 선언된 실제 파일 업로드 유틸리티 로직을 태웁니다.
+            // 예시: newStoredFileName = fileStoreService.store(request.getPhoto());
+        }
+
+        photoService.updatePhoto(photoId, userId, request, newStoredFileName);
+        return ResponseEntity.ok().build(); // 200 수정 성공 응답
     }
 }
