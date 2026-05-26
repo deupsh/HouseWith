@@ -19,4 +19,5 @@ public class ParticipantInfo {
     private String profileEmoji; // 이모지 경로
     private Integer profileBackground; // 배경 번호
     private String customProfileImage; // 프로필 이미지 파일명
+    private Integer profileType; // 프로필 타입 여부
 }

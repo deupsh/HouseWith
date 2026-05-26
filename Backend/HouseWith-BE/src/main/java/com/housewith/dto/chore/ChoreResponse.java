@@ -2,6 +2,7 @@ package com.housewith.dto.chore;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.housewith.dto.account.ParticipantInfo;
 
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ public class ChoreResponse {
     private String title; // 집안일 제목
     private Integer cycleType;          // 반복 주기 | 0: 매일, 1: 매주, 2: 매월
     private Integer scheduledDate;      // 날짜 지정 | 매주: 요일(0~6), 매월: 날짜(1~31), 매일: null
+    @JsonProperty("isDone")
     private boolean isDone; // 완료 여부
     private List<ParticipantInfo> participants; // 담당자 목록
 }
