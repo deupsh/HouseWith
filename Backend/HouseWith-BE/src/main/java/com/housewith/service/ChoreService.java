@@ -217,4 +217,78 @@ public class ChoreService {
         choreParticipantRepository.deleteByChoreId(choreId);
         choreRepository.deleteById(choreId);
     }
+    
+    // 스케줄러 전용 로직: 매일 자정에 호출되어 '어제' 미완료된 집안일 이력 적재
+    @Transactional
+    public int archiveYesterdayUnfinishedChores() {
+        // 1. 기준은 스케줄러 실행 시점(오늘 자정) 기준 '-1일(어제)'
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDateTime startOfYesterday = yesterday.atStartOfDay();
+        LocalDateTime endOfYesterday = yesterday.atTime(LocalTime.MAX); // 어제 23:59:59
+
+        // 2. 모든 집안일 마스터 정보 조회
+        List<Chore> allChores = choreRepository.findAll();
+
+        // 3. 성현님이 만든 메서드 재활용! 어제 수행해야 했던 집안일만 필터링
+        List<Chore> yesterdayChores = allChores.stream()
+                .filter(chore -> isChoreScheduledOnDate(chore, yesterday))
+                .toList();
+
+        if (yesterdayChores.isEmpty()) return 0;
+
+        List<Long> choreIds = yesterdayChores.stream().map(Chore::getId).toList();
+
+        // 4. 어제 수행해야 했던 집안일들의 전체 담당자 목록과, 어제 이미 완료한 기록 조회
+        List<ChoreParticipant> participants = choreParticipantRepository.findByChoreIdIn(choreIds);
+        List<ChoreRecord> yesterdayRecords = choreRecordRepository.findByChoreIdInAndCompletedAtBetween(
+                choreIds, startOfYesterday, endOfYesterday
+        );
+
+        int failedCount = 0;
+
+        // 5. 담당자별로 어제 완료 기록이 있는지 확인하고 없으면 미완료(실패) 기록 생성
+        for (Chore chore : yesterdayChores) {
+            // 이 집안일의 담당자들만 필터링
+            List<ChoreParticipant> choreParticipants = participants.stream()
+                    .filter(p -> p.getChoreId().equals(chore.getId()))
+                    .toList();
+
+            for (ChoreParticipant participant : choreParticipants) {
+                // 어제 이 담당자가 이 집안일을 완료한 기록이 있는가?
+                boolean isDone = yesterdayRecords.stream()
+                        .anyMatch(r -> r.getChoreId().equals(chore.getId())
+                                && r.getProfileId().equals(participant.getProfileId())
+                                && r.getIsCompleted());
+
+                // 완료 기록이 없다면 실패 이력 적재
+                if (!isDone) {
+                    ChoreRecord failedRecord = ChoreRecord.builder()
+                            .choreId(chore.getId())
+                            .profileId(participant.getProfileId())
+                            .build();
+
+                    // 성현님의 방식(Reflection)을 응용하여 completedAt을 어제 23:59:59로 꼼수 세팅!
+                    ReflectionUtils_setFailedAt(failedRecord, endOfYesterday);
+                    
+                    choreRecordRepository.save(failedRecord);
+                    failedCount++;
+                }
+            }
+        }
+        return failedCount;
+    }
+
+    // 미완료 기록의 시간(어제 23:59:59)을 세팅하기 위한 리플렉션 유틸
+    private void ReflectionUtils_setFailedAt(ChoreRecord record, LocalDateTime failedTime) {
+        try {
+            java.lang.reflect.Field isCompletedField = ChoreRecord.class.getDeclaredField("isCompleted");
+            java.lang.reflect.Field completedAtField = ChoreRecord.class.getDeclaredField("completedAt");
+            isCompletedField.setAccessible(true);
+            completedAtField.setAccessible(true);
+            isCompletedField.set(record, false); // 미완료 상태 명시 (0)
+            completedAtField.set(record, failedTime); // 시간을 어제 날짜로 조작
+        } catch (Exception e) {
+            throw new RuntimeException("ChoreRecord 실패 상태 변경 실패", e);
+        }
+    }
 }

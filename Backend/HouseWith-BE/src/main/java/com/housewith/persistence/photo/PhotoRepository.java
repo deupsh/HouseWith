@@ -18,12 +18,14 @@ import com.housewith.domain.photo.Photo;
 
 public interface PhotoRepository extends JpaRepository<Photo, Long> {
 	// 3_2 대표 사진 조회: 특정 앨범의 대표 사진(isRepresentative = true) 가져오기
-	Optional<Photo> findByUser_IdAndAlbumNameAndIsRepresentativeTrue(Long userId, String albumName);
-
-	// 3_2 앨범 목록 조회: 유저가 가진 모든 앨범 이름들을 중복 없이 가져오기 (필요 시 @Query 사용)
-	@Query("SELECT DISTINCT p.albumName FROM Photo p WHERE p.user.id = :userId")
-	List<String> findDistinctAlbumNamesByUserId(@Param("userId") Long userId);
+	Optional<Photo> findByUser_IdAndAlbum_NameAndIsRepresentativeTrue(Long userId, String albumName);
 
 	// 3_3 사진 정렬: 특정 앨범의 사진들을 날짜 최신순(Desc)으로 모두 가져오기
-	List<Photo> findByUser_IdAndAlbumNameOrderByPhotoDateDesc(Long userId, String albumName);
+	List<Photo> findByUser_IdAndAlbum_NameOrderByPhotoDateDesc(Long userId, String albumName);
+	
+	// 앨범 무관 전체 사진 가져오기
+	List<Photo> findByUser_IdOrderByPhotoDateDesc(Long userId);
+	
+	// 앨범 내 남은 사진 개수 확인
+	long countByAlbum_Id(Long albumId);
 }

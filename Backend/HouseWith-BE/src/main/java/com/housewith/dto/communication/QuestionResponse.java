@@ -21,4 +21,5 @@ public class QuestionResponse {
     private String weekLabel;           // 주차 표시 라벨 (예: "2026년 21주차")
     private String myAnswer;            // 내 답변 (미제출 시 null)
     private List<FamilyAnswer> answers; // 내가 답변 완료 시에만 노출, 미완료 시 빈 리스트
+    private Boolean isReceivingQuestion; // 토글 스위치 동기화 위한 속성
 }
