@@ -61,7 +61,7 @@ const Analysis = () => {
       const today = new Date().toISOString().split('T')[0]; 
 
       // 백엔드 주방에 주간 분석 데이터 주문!
-      const response = await axios.get(`/api/analysis/weekly?date=${today}`, {
+      const response = await axios.get('/api/statistics', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -73,7 +73,7 @@ const Analysis = () => {
       // 백엔드가 아직 완성 안 되었으니, 에러가 나면 아까 쓰던 MOCK 데이터를 임시로 띄워줍니다.
       // 🚨 (나중에 백엔드 완성되면 아래 두 줄은 지우시면 됩니다!)
       console.log("임시 더미 데이터를 화면에 표시합니다.");
-      setData(require('./mockData.json')); // 만약 MOCK_API_RESPONSE를 위에 그대로 뒀다면 setData(MOCK_API_RESPONSE); 로 변경하세요.
+      setData(DEFAULT_EMPTY_DATA);
     } finally {
       setIsLoading(false); // 로딩 끝!
     }
