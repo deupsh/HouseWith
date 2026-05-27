@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.housewith.domain.account.Profile;
 import com.housewith.domain.account.User;
+import com.housewith.domain.photo.Album;
 import com.housewith.domain.photo.Photo;
 import com.housewith.dto.photo.PhotoDetailResponse;
 import com.housewith.dto.photo.PhotoSummaryResponse;
@@ -15,6 +16,7 @@ import com.housewith.dto.photo.PhotoUpdateRequest;
 import com.housewith.dto.photo.PhotoUploadRequest;
 import com.housewith.persistence.account.ProfileRepository;
 import com.housewith.persistence.account.UserRepository;
+import com.housewith.persistence.photo.AlbumRepository;
 import com.housewith.persistence.photo.PhotoRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class PhotoService {
     private final PhotoRepository photoRepository;
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final AlbumRepository albumRepository;
 
     // 7_1 사진 업로드
     @Transactional
@@ -45,13 +48,13 @@ public class PhotoService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로필 슬롯입니다."));
 
         LocalDate finalDate = (request.getDate() != null) ? request.getDate() : LocalDate.now();
-        String finalAlbumName = (request.getAlbum() != null && !request.getAlbum().isBlank()) ? request.getAlbum() : "기본 앨범";
-
+        Album album = getOrCreateAlbum(user, request.getAlbum());
+        
         Photo photo = Photo.builder()
                 .user(user)
                 .title(request.getTitle())
                 .photoDate(finalDate)
-                .albumName(finalAlbumName)
+                .album(album)
                 .uploadedBy(uploader) // Long 타입 ID가 아닌 Profile 객체 통째로 주입
                 .fileName(storedFileName)
                 .isRepresentative(false)
@@ -62,10 +65,14 @@ public class PhotoService {
 
     // 7_2 앨범별 사진 목록 조회
     public List<PhotoSummaryResponse> getPhotoSummaryList(Long userId, String albumName) {
-        String targetAlbum = (albumName != null && !albumName.isBlank()) ? albumName : "기본 앨범";
+        List<Photo> photos;
         
-        // 레포지토리에 구현한 메서드 스펙 정확히 호출
-        List<Photo> photos = photoRepository.findByUser_IdAndAlbumNameOrderByPhotoDateDesc(userId, targetAlbum);
+        // 올바른 흐름: 파라미터가 비어있거나 '전체 보기'면 유저의 전체 사진 조회, 값이 있으면 해당 앨범만 조회
+        if (albumName == null || albumName.isBlank() || albumName.equals("전체 보기")) {
+            photos = photoRepository.findByUser_IdOrderByPhotoDateDesc(userId);
+        } else {
+        	photos = photoRepository.findByUser_IdAndAlbum_NameOrderByPhotoDateDesc(userId, albumName);
+        }
 
         return photos.stream()
                 .map(p -> new PhotoSummaryResponse(
@@ -73,7 +80,8 @@ public class PhotoService {
                         p.getFileName(),
                         p.getTitle(),
                         p.getPhotoDate(),
-                        p.getIsRepresentative() // Boolean 객체이므로 get() 활용
+                        p.getAlbum().getName(),
+                        p.getIsRepresentative()
                 ))
                 .toList();
     }
@@ -96,7 +104,7 @@ public class PhotoService {
                 photo.getFileName(),
                 photo.getTitle(),
                 photo.getPhotoDate(),
-                photo.getAlbumName(),
+                photo.getAlbum().getName(),
                 uploaderNickname,
                 photo.getIsRepresentative()
         );
@@ -113,7 +121,7 @@ public class PhotoService {
         }
 
         // 기존에 해당 앨범의 대표 사진이었던 레코드 조회 후 해제
-        photoRepository.findByUser_IdAndAlbumNameAndIsRepresentativeTrue(userId, targetPhoto.getAlbumName())
+        photoRepository.findByUser_IdAndAlbum_NameAndIsRepresentativeTrue(userId, targetPhoto.getAlbum().getName())
                 .ifPresent(existing -> {
                     existing.changeRepresentativeStatus(false);
                 });
@@ -132,7 +140,19 @@ public class PhotoService {
             throw new IllegalArgumentException("해당 사진에 대한 접근 권한이 없습니다.");
         }
 
+        // 1. 지우기 전에 앨범 객체를 미리 저장해 둡니다.
+        Album targetAlbum = photo.getAlbum();
+
+        // 2. 사진 삭제 실행
         photoRepository.delete(photo);
+
+        // 3. 가비지 컬렉션: 해당 앨범에 남은 사진이 있는지 카운트해서 0장이면 앨범도 삭제!
+        // (단, "기본 앨범"은 사진이 없어도 영구 유지하고 싶다면 예외 처리 추가)
+        long remainingPhotos = photoRepository.countByAlbum_Id(targetAlbum.getId());
+        
+        if (remainingPhotos == 0 && !targetAlbum.getName().equals("기본 앨범")) {
+            albumRepository.delete(targetAlbum);
+        }
     }
 
     // 7_6 사진 정보 및 파일 수정 로직
@@ -150,13 +170,27 @@ public class PhotoService {
         // 파일 저장 처리는 컨트롤러 단에서 실행하여 새로운 파일명(newStoredFileName)을 넘겨받거나,
         // 서비스 내부에서 처리할 경우 기존 파일을 지우는 유틸 로직을 이곳에 구성합니다.
         // 예: if (newStoredFileName != null) { fileUtil.delete(photo.getFileName()); }
+        
+        Album targetAlbum = getOrCreateAlbum(photo.getUser(), request.getAlbum());
 
         // 3. Setter를 쓰지 않고 도메인 엔티티 비즈니스 메서드 호출 (더티 체킹 발동)
         photo.updatePhotoInfo(
                 request.getTitle(),
                 request.getDate(),
-                request.getAlbum(),
+                targetAlbum,
                 newStoredFileName // 파일 업로드가 없다면 null이 전달되어 기존 fileName 유지됨
         );
+    }
+    
+    // 앨범 Find or Create 헬퍼 메소드
+    private Album getOrCreateAlbum(User user, String albumName) {
+        String targetName = (albumName == null || albumName.isBlank()) ? "기본 앨범" : albumName;
+        
+        return albumRepository.findByUser_IdAndName(user.getId(), targetName)
+                .orElseGet(() -> {
+                    // DB에 앨범이 없으면 새 앨범을 생성해서 즉시 저장 후 반환!
+                    Album newAlbum = Album.builder().user(user).name(targetName).build();
+                    return albumRepository.save(newAlbum);
+                });
     }
 }

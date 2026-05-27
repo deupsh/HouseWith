@@ -110,7 +110,13 @@ const PhotoFormModal = ({ onClose, onSave, editingPhoto, albums, onDeleteClick }
 
           <div className="form-field">
             <label>촬영 날짜 <span className="sub-label">(미입력 시 오늘 날짜)</span></label>
-            <input type="date" className="styled-date-input" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input 
+              type="date" 
+              className="styled-date-input" 
+              value={date} 
+              onChange={(e) => setDate(e.target.value)} 
+              max={new Date().toISOString().split('T')[0]} /* 🚨 오늘 날짜까지만 선택 가능하도록 제한! */
+            />
           </div>
 
           <div className="form-field">

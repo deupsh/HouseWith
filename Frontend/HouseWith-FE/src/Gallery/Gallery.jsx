@@ -25,28 +25,52 @@ const Gallery = () => {
   const [photoToDelete, setPhotoToDelete] = useState(null);
 
   // 전체 사진 목록 가져오기 (GET)
+  // 🚨 1. 앨범 목록만 따로 가져오는 독립적인 함수 신설
+  const fetchAlbums = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      // 백엔드에 앨범 목록 요청 (문자열 배열로 받는다고 가정)
+      const response = await axios.get('/api/albums', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const fetchedAlbums = response.data;
+      setAlbums(['기본 앨범', ...fetchedAlbums.filter(a => a !== '기본 앨범')]);
+    } catch (error) {
+      console.error("앨범 목록 조회 실패:", error);
+    }
+  };
+
+  // 🚨 2. 기존 fetchPhotos 내부의 앨범 탭 갱신 꼼수 삭제
   const fetchPhotos = async () => {
     try {
       const token = localStorage.getItem('accessToken');
+      
+      // 🚨 핵심 포인트: params 필터링을 아예 날려버립니다.
+      // 탭이 뭐든 간에 무조건 유저의 모든 사진을 다 가져와서 photos 배열에 꽉 채워둡니다.
       const response = await axios.get('/api/photos', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setPhotos(response.data);
+      const formattedPhotos = response.data.map(p => ({
+        id: p.photoId,
+        title: p.title,
+        date: p.date,
+        album: p.album,
+        url: `http://localhost/uploads/photo/${p.fileName}`, 
+        isThumbnail: p.thumbnail
+      }));
       
-      // 사진 데이터에서 앨범 이름만 중복 없이 추출해서 앨범 목록 생성
-      const fetchedAlbums = [...new Set(response.data.map(p => p.album))];
-      setAlbums(['기본 앨범', ...fetchedAlbums.filter(a => a !== '기본 앨범')]);
+      setPhotos(formattedPhotos);
       
     } catch (error) {
-      console.error("사진첩 조회 실패 (서버 미준비):", error);
-      // 에러 시 임시 더미 데이터 세팅
-      setPhotos(INITIAL_PHOTOS);
-      setAlbums(INITIAL_ALBUMS);
+      console.error("사진첩 조회 실패:", error);
     }
   };
 
+  // 2. 🚨 useEffect 종속성 배열 비우기 (currentAlbum 제거)
   useEffect(() => {
+    fetchAlbums();
     fetchPhotos();
   }, []);
 
@@ -69,19 +93,39 @@ const Gallery = () => {
   };
 
   // 3. 사진 삭제하기 (DELETE)
-  const confirmDelete = async () => {
+  cconst confirmDelete = async () => {
     try {
       const token = localStorage.getItem('accessToken');
+      
+      // 1. 지울 사진의 정보(앨범명 등)를 미리 찾아둠
+      const photoToDeleteInfo = photos.find(p => p.id === photoToDelete);
+      
       await axios.delete(`/api/photos/${photoToDelete}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setPhotos(prevPhotos => prevPhotos.filter(p => p.id !== photoToDelete));
+      // 2. 화면에서 사진 제거 (기존 로직)
+      const updatedPhotos = photos.filter(p => p.id !== photoToDelete);
+      setPhotos(updatedPhotos);
+      
+      // 🚨 3. 프론트엔드 가비지 컬렉션 동기화 및 탭 이동 UX
+      if (photoToDeleteInfo && photoToDeleteInfo.album !== '기본 앨범') {
+        // 방금 지운 사진이 속했던 앨범에 남은 사진이 0장인지 확인
+        const remainingInAlbum = updatedPhotos.filter(p => p.album === photoToDeleteInfo.album).length;
+        
+        if (remainingInAlbum === 0) {
+          // 백엔드에서 앨범이 삭제되었으므로 프론트엔드 탭 목록도 즉시 새로고침!
+          await fetchAlbums();
+          
+          // 만약 유저가 지금 텅 비어서 삭제된 그 앨범 탭을 보고 있었다면, 허공에 남지 않게 '전체 보기'로 이동시켜 줌
+          if (currentAlbum === photoToDeleteInfo.album) {
+            setCurrentAlbum('전체 보기');
+          }
+        }
+      }
       
     } catch (error) {
       console.error("사진 삭제 실패:", error);
-      // Fallback: 로컬 삭제
-      setPhotos(prevPhotos => prevPhotos.filter(p => p.id !== photoToDelete));
     } finally {
       setIsConfirmOpen(false);
       setPhotoToDelete(null);
@@ -171,23 +215,28 @@ const Gallery = () => {
   };
 
   // 🌟 5. 대표 사진 설정 (PATCH 또는 PUT)
-  const toggleSelectThumbnail = async (photoId, albumName, currentIsThumbnail) => {
+  const setAsThumbnail = async (photoId, albumName) => {
     try {
       const token = localStorage.getItem('accessToken');
       
-      // 특정 앨범의 대표 사진 상태만 토글 업데이트
+      // 백엔드 PATCH 명세 호출 (이제 해제가 없으므로 상태값을 보낼 필요도 없습니다)
       await axios.patch(`/api/photos/${photoId}/thumbnail`, 
-        { isThumbnail: !currentIsThumbnail, album: albumName }, 
+        {}, 
         { headers: { Authorization: `Bearer ${token}` }}
       );
 
-      // 성공하면 프론트엔드 화면 즉시 갱신
-      updateLocalThumbnail(photoId, albumName, currentIsThumbnail);
-
+      // 로컬 업데이트: 방금 누른 사진만 true, 같은 앨범의 나머지 사진은 전부 false로 밀어버림
+      setPhotos(
+        photos.map((p) => {
+          if (p.album === albumName) {
+            if (p.id === photoId) return { ...p, isThumbnail: true }; 
+            return { ...p, isThumbnail: false }; 
+          }
+          return p;
+        })
+      );
     } catch (error) {
       console.error("대표 사진 변경 실패:", error);
-      // Fallback: 로컬 업데이트
-      updateLocalThumbnail(photoId, albumName, currentIsThumbnail);
     }
   };
 
@@ -293,17 +342,21 @@ const Gallery = () => {
               <button type="button" className="btn btn-danger" onClick={() => handleDeleteClick(selectedPhoto.id)}>삭제</button>
             </div>
 
-            <button
-              type="button"
-              className={`btn ${selectedPhoto.isThumbnail ? 'btn-secondary' : 'btn-yellow'}`}
-              style={{ width: '100%', marginTop: '10px', boxShadow: 'none' }}
-              onClick={() => {
-                toggleSelectThumbnail(selectedPhoto.id, selectedPhoto.album, selectedPhoto.isThumbnail);
-                setSelectedPhoto({ ...selectedPhoto, isThumbnail: !selectedPhoto.isThumbnail });
-              }}
-            >
-              {selectedPhoto.isThumbnail ? '★ 대표 사진 해제' : '⭐ 이 앨범의 대표 사진으로 설정'}
-            </button>
+            {photos.filter(p => p.album === selectedPhoto.album).length > 1 && (
+              <button
+                type="button"
+                className={`btn ${selectedPhoto.isThumbnail ? 'btn-secondary' : 'btn-yellow'}`}
+                style={{ width: '100%', marginTop: '10px', boxShadow: 'none' }}
+                disabled={selectedPhoto.isThumbnail} // 🚨 이미 대표 사진이면 클릭(중복 요청) 방지
+                onClick={() => {
+                  setAsThumbnail(selectedPhoto.id, selectedPhoto.album);
+                  setSelectedPhoto({ ...selectedPhoto, isThumbnail: true }); // 무조건 true로 고정
+                }}
+              >
+                {/* 🚨 해제라는 말을 없애고, 현재 상태를 직관적으로 알려줌 */}
+                {selectedPhoto.isThumbnail ? '⭐ 현재 앨범의 대표 사진입니다' : '⭐ 이 앨범의 대표 사진으로 설정'}
+              </button>
+            )}
           </div>
         </div>
       )}

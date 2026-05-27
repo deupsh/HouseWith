@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +25,8 @@ public class PhotoUploadRequest {
     @NotBlank(message = "사진 제목을 입력해주세요")
     @Size(min = 1, max = 20, message = "사진 제목은 1~20자여야 합니다")
     private String title; // 사진 제목
-
+    
+    @PastOrPresent(message = "사진 날짜는 미래로 설정할 수 없습니다.")
     private LocalDate date;                 // 사진 날짜 | 미 입력 시 Service에서 오늘 날짜 Default 처리
 
     private String album;                   // 앨범명 | 미 입력 시 Service에서 기본 앨범 Default 처리
