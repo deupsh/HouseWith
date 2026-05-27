@@ -1,5 +1,9 @@
 package com.housewith.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -142,6 +146,7 @@ public class PhotoService {
 
         // 1. 지우기 전에 앨범 객체를 미리 저장해 둡니다.
         Album targetAlbum = photo.getAlbum();
+        String fileName = photo.getFileName();
 
         // 2. 사진 삭제 실행
         photoRepository.delete(photo);
@@ -152,6 +157,16 @@ public class PhotoService {
         
         if (remainingPhotos == 0 && !targetAlbum.getName().equals("기본 앨범")) {
             albumRepository.delete(targetAlbum);
+        }
+        try {
+            Path filePath = Paths.get("C:/HouseWith/uploads/photo", fileName); 
+            
+            // 파일이 존재하면 깔끔하게 삭제
+            Files.deleteIfExists(filePath); 
+        } catch (IOException e) {
+            // DB 롤백 방지용: 파일 삭제에 실패하더라도 DB 레코드 삭제는 유지되도록 로그만 남깁니다.
+            System.err.println("물리적 파일 삭제 실패: " + fileName);
+            e.printStackTrace();
         }
     }
 
