@@ -93,7 +93,7 @@ const Gallery = () => {
   };
 
   // 3. 사진 삭제하기 (DELETE)
-  cconst confirmDelete = async () => {
+  const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('accessToken');
       
