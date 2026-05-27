@@ -18,5 +18,6 @@ public class MemberStat {
     private String profileEmoji; // 이모지 번호
     private Integer profileBackground; // 배경색 번호
     private String customProfileImage; // 프로필 이미지 파일명
+    private Integer profileType; // 프로필 사진 사용 여부
     private int count; // 해당 주 집안일 완료 횟수
 }
