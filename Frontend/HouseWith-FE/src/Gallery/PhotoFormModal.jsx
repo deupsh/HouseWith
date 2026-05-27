@@ -10,6 +10,7 @@ const PhotoFormModal = ({ onClose, onSave, editingPhoto, albums, onDeleteClick }
   const [photoUrl, setPhotoUrl] = useState('');
   const [fileName, setFileName] = useState('');
   const [error, setError] = useState('');
+  const [photoFile, setPhotoFile] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -28,6 +29,7 @@ const PhotoFormModal = ({ onClose, onSave, editingPhoto, albums, onDeleteClick }
     const file = e.target.files[0];
     if (!file) {
       setFileName('');
+      setPhotoFile(null);
       return;
     }
 
@@ -42,6 +44,7 @@ const PhotoFormModal = ({ onClose, onSave, editingPhoto, albums, onDeleteClick }
     const fakeUrl = URL.createObjectURL(file);
     setPhotoUrl(fakeUrl);
     setFileName(file.name);
+    setPhotoFile(file);
   };
 
   const handleSubmit = (e) => {
@@ -71,6 +74,7 @@ const PhotoFormModal = ({ onClose, onSave, editingPhoto, albums, onDeleteClick }
       date: finalDate,
       album: finalAlbum,
       url: photoUrl || noImage,
+      file: photoFile,
     });
   };
 
@@ -106,7 +110,13 @@ const PhotoFormModal = ({ onClose, onSave, editingPhoto, albums, onDeleteClick }
 
           <div className="form-field">
             <label>촬영 날짜 <span className="sub-label">(미입력 시 오늘 날짜)</span></label>
-            <input type="date" className="styled-date-input" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input 
+              type="date" 
+              className="styled-date-input" 
+              value={date} 
+              onChange={(e) => setDate(e.target.value)} 
+              max={new Date().toISOString().split('T')[0]} /* 🚨 오늘 날짜까지만 선택 가능하도록 제한! */
+            />
           </div>
 
           <div className="form-field">

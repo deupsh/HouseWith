@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -103,16 +104,25 @@ public class CommunicationService {
     }
 
     // 주간 질의응답 화면 조회 (동적 주차 계산 및 블라인드 로직)
-    public QuestionResponse getWeeklyQuestion(Long userId, Long myProfileId) {
+    public QuestionResponse getWeeklyQuestion(Long userId, Long myProfileId, int offset) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("가족 그룹을 찾을 수 없습니다."));
         
-        if (!user.getIsReceivingQuestion() || user.getCurrentQuestionId() == 0L) {
-            throw new IllegalStateException("현재 활성화된 주간 질문이 없습니다.");
+        // 1. 목표 질문 ID 계산 (현재 질문 ID + offset)
+        Long currentQuestionId = user.getCurrentQuestionId();
+        if (currentQuestionId == null) currentQuestionId = 0L;
+        
+        long targetQuestionId = currentQuestionId + offset;
+
+        // 2. 과거의 끝(0 이하)을 조회하려고 하면 프론트로 404 에러를 던지기 위한 예외 처리
+        // (컨트롤러가 이 예외를 잡아서 404로 반환하므로, 프론트엔드 catch 블록이 정상 작동합니다)
+        if (targetQuestionId <= 0) {
+            throw new IllegalStateException("해당 주차의 과거 질문이 존재하지 않습니다.");
         }
 
-        Question question = questionRepository.findById(user.getCurrentQuestionId())
-                .orElseThrow(() -> new IllegalArgumentException("질문 데이터를 찾을 수 없습니다."));
+        // 3. 계산된 targetQuestionId로 과거/현재 질문 조회
+        Question question = questionRepository.findById(targetQuestionId)
+                .orElseThrow(() -> new IllegalStateException("질문 데이터를 찾을 수 없습니다."));
 
         List<UserAnswer> allAnswers = userAnswerRepository.findByQuestionId(question.getId());
 
@@ -123,11 +133,12 @@ public class CommunicationService {
                 .orElse(null);
 
         // 자바 표준 API를 활용한 동적 '주차(Week)' 계산 로직 (월요일 기준)
-        LocalDate now = LocalDate.now();
-        WeekFields weekFields = WeekFields.ISO; // ISO 표준: 월요일을 한 주의 시작으로 간주
-        int currentYear = now.getYear();
-        int currentWeek = now.get(weekFields.weekOfWeekBasedYear());
-        String calculatedWeekLabel = currentYear + "년 " + currentWeek + "주차";
+        LocalDate targetDate = LocalDate.now().plusWeeks(offset);
+        WeekFields weekFields = WeekFields.of(Locale.KOREA);
+        int targetYear = targetDate.getYear();
+        int targetMonth = targetDate.getMonthValue();
+        int targetWeekOfMonth = targetDate.get(weekFields.weekOfMonth());
+        String calculatedWeekLabel = targetYear + "년 " + targetMonth + "월 " + targetWeekOfMonth + "주차";
 
         // 블라인드 처리 로직 (내가 답변했을 때만 가족들 답변 노출)
         String myAnswerContent = (myAnswerObj != null) ? myAnswerObj.getContent() : null;
@@ -148,18 +159,41 @@ public class CommunicationService {
                                 p.getEmojiId(),
                                 p.getBackgroundId(),
                                 p.getCustomProfileImage(),
-                                answer.getContent()
+                                answer.getContent(),
+                                p.getProfileType()
                         );
                     })
                     .toList();
         }
 
+        // 4. 프론트엔드의 토글 버튼 상태 동기화를 위해 isReceivingQuestion 값도 함께 반환
         return new QuestionResponse(
                 question.getId(),
                 question.getContent(),
                 calculatedWeekLabel,
                 myAnswerContent,
-                familyAnswers
+                familyAnswers,
+                user.getIsReceivingQuestion()
         );
+    }
+    
+    // 주간 질문 수신 여부 Update
+    @Transactional
+    public void updateQuestionSetting(Long userId, boolean isReceivingQuestion) {
+        // 1. 유저(가족 그룹) 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("가족 그룹을 찾을 수 없습니다."));
+        
+        user.updateQuestionReceiving(isReceivingQuestion); 
+        
+        if (isReceivingQuestion && (user.getCurrentQuestionId() == null || user.getCurrentQuestionId() == 0L)) {
+            user.updateCurrentQuestionId(1L); 
+        }
+    }
+    
+    // 스케줄러가 호출할 주간 질문 일괄 갱신 로직
+    @Transactional
+    public int incrementWeeklyQuestionIds() {
+        return userRepository.incrementQuestionIdForActiveUsers();
     }
 }

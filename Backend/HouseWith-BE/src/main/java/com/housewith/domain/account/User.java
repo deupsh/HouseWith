@@ -57,4 +57,14 @@ public class User {
         this.currentQuestionId = 0L;
         this.isReceivingQuestion = false;
     }
+    
+    // 주간 질문 수신 여부 Update 메소드
+    public void updateQuestionReceiving(Boolean isReceiving) {
+        this.isReceivingQuestion = isReceiving;
+    }
+    
+    // 현재 질문 Update 메소드
+    public void updateCurrentQuestionId(Long currentQuestionId) {
+        this.currentQuestionId = currentQuestionId;
+    }
 }

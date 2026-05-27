@@ -1,8 +1,9 @@
 package com.housewith.domain.photo;
 
 import java.time.LocalDate;
-import com.housewith.domain.account.User;
+
 import com.housewith.domain.account.Profile;
+import com.housewith.domain.account.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,9 +46,10 @@ public class Photo {
 
     @Column(name = "photo_date")
     private LocalDate photoDate; 
-
-    @Column(name = "album_name", length = 100)
-    private String albumName;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "album_id", nullable = false)
+    private Album album;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploaded_by", nullable = false)
@@ -60,20 +62,20 @@ public class Photo {
     private Boolean isRepresentative = false;
 
     @Builder
-    public Photo(User user, String title, LocalDate photoDate, String albumName, Profile uploadedBy, String fileName, Boolean isRepresentative) {
+    public Photo(User user, String title, LocalDate photoDate, Album album, Profile uploadedBy, String fileName, Boolean isRepresentative) {
         this.user = user;
         this.title = title;
         this.photoDate = photoDate;
-        this.albumName = albumName;
+        this.album = album;
         this.uploadedBy = uploadedBy;
         this.fileName = fileName;
         this.isRepresentative = (isRepresentative != null) ? isRepresentative : false;
     }
 
-    public void updatePhotoInfo(String title, LocalDate photoDate, String albumName, String fileName) {
+    public void updatePhotoInfo(String title, LocalDate photoDate, Album album, String fileName) {
         this.title = title;
         this.photoDate = photoDate != null ? photoDate : this.photoDate;
-        this.albumName = albumName != null ? albumName : this.albumName;
+        this.album = album != null ? album : this.album;
         
         // 새로운 파일명이 전달되었을 때만 파일명 교체
         if (fileName != null) {
@@ -81,7 +83,7 @@ public class Photo {
         }
     }
     
-    // 일정 수정 메소드 (JPA의 .save 공통 메소드가 아닌 Entity에 작성)
+    // 대표 사진 상태 변경 메소드 (JPA의 .save 공통 메소드가 아닌 Entity에 작성)
     public void changeRepresentativeStatus(Boolean status) {
         this.isRepresentative = status;
     }

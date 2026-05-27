@@ -1,6 +1,9 @@
 package com.housewith.controller;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,10 +11,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -47,17 +50,38 @@ public class PhotoController {
             @AuthenticationPrincipal Long userId,               // JWT 검증이 완료된 진짜 유저 PK
             @RequestHeader("ProfileId") Long profileId,         // FE와 맞춘 슬롯 PK 헤더 (안 맞을 시 하이브리드 단에서 직접 튜닝 가능)
             @RequestPart("metadata") @Valid PhotoUploadRequest request,
-            @RequestPart("file") MultipartFile file) {
+            @RequestPart("file") MultipartFile file) throws IOException{
 
         // 파일 유효성 검증 및 MultipartRequest 처리 흐름 확보
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("업로드할 파일이 존재하지 않습니다.");
         }
+        
+        // 저장 경로 설정
+        String uploadDir = "C:/HouseWith/uploads/photo/";
+        File dir = new File(uploadDir);
+        if (!dir.exists()) {
+            dir.mkdirs(); 
+        }
 
-        // 원본 파일명 바인딩
-        String storedFileName = file.getOriginalFilename();
+        String originalFilename = file.getOriginalFilename();
+        String uuid = UUID.randomUUID().toString();
+        
+        // 원본 파일에서 확장자만 추출 (예: .jpg, .png)
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
 
-        Long photoId = photoService.uploadPhoto(userId, profileId, request, storedFileName);
+        // 서버에 저장될 고유한 파일명 조립 (예: 550e8400-e29b-41d4-a716-446655440000.jpg)
+        String savedFileName = uuid + extension;
+
+        // 지정된 경로에 물리적 파일 저장 (Transfer)
+        File dest = new File(uploadDir + savedFileName);
+        file.transferTo(dest);
+
+        // DB에는 원본 이름이 아닌 '고유 파일명(savedFileName)'을 전달하여 저장
+        Long photoId = photoService.uploadPhoto(userId, profileId, request, savedFileName);
         return ResponseEntity.status(HttpStatus.CREATED).body(photoId); // 201 생성 성공
     }
 
@@ -82,7 +106,7 @@ public class PhotoController {
     }
 
     // 7_4 대표 사진 설정 (더티 체킹 기반 상태 변경 연동)
-    @PutMapping("/{photoId}/thumbnail")
+    @PatchMapping("/{photoId}/thumbnail")
     public ResponseEntity<Void> setAlbumThumbnail(
             @PathVariable("photoId") Long photoId,
             @AuthenticationPrincipal Long userId) {
