@@ -30,7 +30,7 @@ public class StatisticsController {
     @GetMapping
     public ResponseEntity<WeeklyStatisticsResponse> getWeeklyStatistics(
             @AuthenticationPrincipal Long userId,
-            @RequestParam(required = false) String week) {
+            @RequestParam(name = "week", required = false) String week) {
         
         // week 파라미터가 없으면 내부적으로 현재 주차를 기준으로 계산합니다.
         WeeklyStatisticsResponse response = statisticsService.getWeeklyStatistics(userId, week);

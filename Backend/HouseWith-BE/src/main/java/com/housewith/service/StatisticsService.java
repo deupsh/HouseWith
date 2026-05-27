@@ -18,8 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import com.housewith.domain.account.Profile;
 import com.housewith.domain.chore.Chore;
 import com.housewith.domain.chore.ChoreRecord;
@@ -32,6 +30,8 @@ import com.housewith.persistence.chore.ChoreRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Service
@@ -57,18 +57,34 @@ public class StatisticsService {
     private static final List<String> COOKING_KEYWORDS = List.of("요리", "설거지", "밥", "식사", "반찬", "장보기", "식재료", "주방", "냉장고", "상차림", "식탁");
     private static final List<String> LAUNDRY_KEYWORDS = List.of("빨래", "세탁", "건조", "개기", "옷", "다림질", "이불", "침구", "세제");
 
-    public WeeklyStatisticsResponse getWeeklyStatistics(Long userId, String weekParam) {
+    
+public WeeklyStatisticsResponse getWeeklyStatistics(Long userId, String weekParam) {
         
-        LocalDate now = LocalDate.now();
-        LocalDate startOfWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfWeek = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        // 1. 주차 파라미터(예: "2026-05-W2") 동적 파싱 로직 추가
+        LocalDate targetDate = LocalDate.now();
+        if (StringUtils.hasText(weekParam) && weekParam.matches("\\d{4}-\\d{2}-W\\d")) {
+            try {
+                String[] parts = weekParam.split("-");
+                int year = Integer.parseInt(parts[0]);
+                int month = Integer.parseInt(parts[1]);
+                int weekNum = Integer.parseInt(parts[2].replace("W", ""));
+                
+                LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
+                targetDate = firstDayOfMonth.with(WeekFields.ISO.weekOfMonth(), weekNum);
+            } catch (Exception e) {
+                log.error("주차 파싱 에러. 현재 날짜 기준 동작. param: {}", weekParam);
+                targetDate = LocalDate.now();
+            }
+        }
         
-        String weekLabel = now.getYear() + "년 " + now.getMonthValue() + "월 " + now.get(WeekFields.ISO.weekOfMonth()) + "주차";
+        LocalDate startOfWeek = targetDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = targetDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        
+        String weekLabel = targetDate.getYear() + "년 " + targetDate.getMonthValue() + "월 " + targetDate.get(WeekFields.ISO.weekOfMonth()) + "주차";
         String weekRange = startOfWeek.getMonthValue() + "월 " + startOfWeek.getDayOfMonth() + "일 - " +
                            endOfWeek.getMonthValue() + "월 " + endOfWeek.getDayOfMonth() + "일";
 
         List<Profile> profiles = profileRepository.findByUser_Id(userId);
-        
         List<Chore> familyChores = choreRepository.findByUser_Id(userId);
         List<Long> choreIds = familyChores.stream().map(Chore::getId).toList();
         
@@ -85,9 +101,17 @@ public class StatisticsService {
                 .filter(ChoreRecord::getIsCompleted)
                 .collect(Collectors.groupingBy(ChoreRecord::getProfileId, Collectors.counting()));
 
+        // 2. DTO 스펙에 맞춰 p.getProfileType() 추가!
         List<MemberStat> memberStats = profiles.stream().map(p -> {
             int count = countsByProfile.getOrDefault(p.getId(), 0L).intValue();
-            return new MemberStat(p.getNickname(), String.valueOf(p.getEmojiId()), p.getBackgroundId(), p.getCustomProfileImage(), count);
+            return new MemberStat(
+                    p.getNickname(), 
+                    String.valueOf(p.getEmojiId()), 
+                    p.getBackgroundId(), 
+                    p.getCustomProfileImage(), 
+                    p.getProfileType(),
+                    count
+            );
         }).sorted((a, b) -> Integer.compare(b.getCount(), a.getCount())).toList(); 
 
         Map<String, Long> categoryCounts = weeklyRecords.stream()
@@ -103,7 +127,6 @@ public class StatisticsService {
             return new CategoryStat(entry.getKey(), entry.getValue().intValue(), percent);
         }).toList();
 
-        // AI 연동
         AiAnalysisResult aiResult = analyzeWithGemini(memberStats, completedCount);
 
         return new WeeklyStatisticsResponse(
@@ -156,7 +179,7 @@ public class StatisticsService {
                 + "[데이터]\n" + promptData.toString();
 
         try {
-            String url = "[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=](https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=)" + geminiApiKey;
+        	String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=" + geminiApiKey;
 
             // 자바 Map을 이용해 안전하고 깔끔하게 JSON 구조 생성 (이스케이프 문자 버그 원천 차단)
             Map<String, Object> requestBodyMap = Map.of(
