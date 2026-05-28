@@ -38,6 +38,16 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(status.value(), status.getReasonPhrase(), message);
         return new ResponseEntity<>(response, status);
     }
+    
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e) {
+        ErrorResponse response = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                e.getMessage() // "가족 슬롯은 최대 10개까지만 생성할 수 있습니다." 메시지 전달
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 
     /* =========================================================
      * 2. API 규격 위반 예외 (파라미터나 헤더를 잘못 보냈을 때 - 400 방어)

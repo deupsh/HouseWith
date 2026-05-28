@@ -26,6 +26,7 @@ import com.housewith.dto.photo.PhotoDetailResponse;
 import com.housewith.dto.photo.PhotoSummaryResponse;
 import com.housewith.dto.photo.PhotoUpdateRequest;
 import com.housewith.dto.photo.PhotoUploadRequest;
+import com.housewith.service.FileService;
 import com.housewith.service.PhotoService;
 
 import jakarta.validation.Valid;
@@ -43,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 public class PhotoController {
 
     private final PhotoService photoService;
+    private final FileService fileService;
 
     // 7_1 사진 업로드 (Multipart 파일과 메타데이터 동시 수신)
     @PostMapping
@@ -64,25 +66,13 @@ public class PhotoController {
             dir.mkdirs(); 
         }
 
-        String originalFilename = file.getOriginalFilename();
-        String uuid = UUID.randomUUID().toString();
+    	String savedFileUrl = fileService.saveFile(file, "photo");
         
-        // 원본 파일에서 확장자만 추출 (예: .jpg, .png)
-        String extension = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
+        // 경로에서 순수 파일명만 추출하여 DB에 넘기거나, URL 통째로 넘기는 건 기획에 맞춰 조율
+        String savedFileName = savedFileUrl.substring(savedFileUrl.lastIndexOf("/") + 1);
 
-        // 서버에 저장될 고유한 파일명 조립 (예: 550e8400-e29b-41d4-a716-446655440000.jpg)
-        String savedFileName = uuid + extension;
-
-        // 지정된 경로에 물리적 파일 저장 (Transfer)
-        File dest = new File(uploadDir + savedFileName);
-        file.transferTo(dest);
-
-        // DB에는 원본 이름이 아닌 '고유 파일명(savedFileName)'을 전달하여 저장
         Long photoId = photoService.uploadPhoto(userId, profileId, request, savedFileName);
-        return ResponseEntity.status(HttpStatus.CREATED).body(photoId); // 201 생성 성공
+        return ResponseEntity.status(HttpStatus.CREATED).body(photoId);
     }
 
     // 7_2 사진 목록 조회 (앨범 이름 파라미터를 통한 동적 필터링)
@@ -130,14 +120,13 @@ public class PhotoController {
     public ResponseEntity<Void> updatePhoto(
             @PathVariable("photoId") Long photoId,
             @AuthenticationPrincipal Long userId, // 세션 토큰에서 유저 고유 ID 추출
-            @Valid @ModelAttribute PhotoUpdateRequest request) { // 🚨 폼 데이터 파싱을 위해 @ModelAttribute 필수
+            @Valid @ModelAttribute PhotoUpdateRequest request) throws IOException { 
 
         String newStoredFileName = null;
 
-        // 사용자가 수정 창에서 새로운 이미지 파일을 첨부한 경우 파일 저장 프로세스 진행
         if (request.getPhoto() != null && !request.getPhoto().isEmpty()) {
-            // 프로젝트 내부에 선언된 실제 파일 업로드 유틸리티 로직을 태웁니다.
-            // 예시: newStoredFileName = fileStoreService.store(request.getPhoto());
+        	String savedFileUrl = fileService.saveFile(request.getPhoto(), "photo");
+            newStoredFileName = savedFileUrl.substring(savedFileUrl.lastIndexOf("/") + 1);
         }
 
         photoService.updatePhoto(photoId, userId, request, newStoredFileName);

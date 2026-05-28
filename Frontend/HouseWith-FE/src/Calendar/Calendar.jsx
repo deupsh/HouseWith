@@ -116,7 +116,9 @@ const Calendar = ({ showToast }) => {
       setModalMode('detail');
       setIsModalOpen(true);
     } catch (error) {
-      console.error("일정 상세 조회 실패:", error);
+      const errorMsg = error.response?.data?.message || '일정을 불러올 수 없습니다.';
+      alert(errorMsg); 
+      fetchEvents(year, month);
     }
   };
 
@@ -183,18 +185,8 @@ const Calendar = ({ showToast }) => {
       fetchEvents(year, month);
 
     } catch (error) {
-      console.error("일정 저장 실패:", error);
-      
-      if (modalMode === 'create') {
-        const colors = ['#E6F0E7', '#FFF3CD', '#FDECE8', '#E3F2FD', '#F3E5F5'];
-        const randomColor = colors[events.length % colors.length];
-        setEvents([...events, { ...eventData, id: Date.now(), color: randomColor }]);
-        if (showToast) showToast("새 일정이 등록되었어요! 🗓️ (로컬)");
-      } else if (modalMode === 'edit') {
-        setEvents(events.map(e => e.id === eventData.id ? { ...e, ...eventData } : e));
-        if (showToast) showToast("일정 수정이 완료되었습니다. (로컬)");
-      }
-      setIsModalOpen(false);
+      const errorMsg = error.response?.data?.message || "일정 저장에 실패했습니다.";
+      alert(errorMsg);
     }
   };
 
@@ -210,10 +202,8 @@ const Calendar = ({ showToast }) => {
       if (showToast) showToast("일정이 정상적으로 삭제되었습니다.");
 
     } catch (error) {
-      console.error("일정 삭제 실패:", error);
-      setEvents(events.filter(e => e.id !== eventId));
-      setIsModalOpen(false);
-      if (showToast) showToast("일정이 삭제되었습니다. (로컬)");
+      const errorMsg = error.response?.data?.message || "일정 삭제 권한이 없거나 실패했습니다.";
+      alert(errorMsg);
     }
   };
 

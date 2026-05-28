@@ -54,9 +54,10 @@ public class CalendarController {
     @PutMapping("/{calendarId}")
     public ResponseEntity<Void> updateCalendar(
             @PathVariable("calendarId") Long calendarId,
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CalendarUpdateRequest request) {
         
-        calendarService.updateCalendar(calendarId, request);
+    	calendarService.updateCalendar(calendarId, userId, request);
         return ResponseEntity.ok().build(); // 200 수정 성공
     }
 
@@ -83,8 +84,8 @@ public class CalendarController {
 
     // 5_5 일정 삭제 (DELETE /api/calendars/{calendarId})
     @DeleteMapping("/{calendarId}")
-    public ResponseEntity<Void> deleteCalendar(@PathVariable("calendarId") Long calendarId) {
-        calendarService.deleteCalendar(calendarId);
+    public ResponseEntity<Void> deleteCalendar(@PathVariable("calendarId") Long calendarId, @AuthenticationPrincipal Long userId) {
+    	calendarService.deleteCalendar(calendarId, userId);
         return ResponseEntity.noContent().build(); // 204 바디 없음 성공
     }
 }

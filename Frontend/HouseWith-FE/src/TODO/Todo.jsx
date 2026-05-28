@@ -147,6 +147,12 @@ const Todo = () => {
       setTodoToDelete(null);
     } catch (error) {
       console.error("삭제 실패:", error);
+      // 🚨 유저에게 에러 상황 알림 (프론트 자체 메시지 활용)
+      alert("집안일 삭제 권한이 없거나 서버 통신에 실패했습니다."); 
+      
+      // 🚨 모달이 무한 로딩 상태처럼 보이지 않도록 닫아줌
+      setIsConfirmOpen(false);
+      setTodoToDelete(null);
     }
   };
 
