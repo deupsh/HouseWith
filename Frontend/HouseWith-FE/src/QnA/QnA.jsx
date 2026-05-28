@@ -177,7 +177,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
               >
                 {currentProfile.profile_type === 1 ? (
                   <img 
-                    src={`http://localhost/uploads${currentProfile.custom_profile_image}`} 
+                    src={`http://${window.location.hostname}/uploads${currentProfile.custom_profile_image}`} 
                     alt="my-profile" 
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />
@@ -206,7 +206,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
                   >
                     {ans.profileType === 1 ? (
                       <img 
-                        src={`http://localhost/uploads${ans.customProfileImage}`} 
+                        src={`http://${window.location.hostname}/uploads${ans.customProfileImage}`} 
                         alt={ans.nickname} 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                       />

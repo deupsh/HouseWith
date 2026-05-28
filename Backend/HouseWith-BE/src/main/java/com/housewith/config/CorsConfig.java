@@ -15,7 +15,7 @@ public class CorsConfig implements WebMvcConfigurer {
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
 		registry.addMapping("/api/**") // 모든 API 경로에 적용
-				.allowedOrigins("http://localhost:5173") // React 개발 서버
+				.allowedOrigins("http://localhost:5173", "http://10.0.2.2:5173") // React 개발 서버
 				.allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS").allowedHeaders("*")
 				.allowCredentials(true) // JWT 쿠키/헤더 허용
 				.maxAge(3600); // preflight 캐시 1시간

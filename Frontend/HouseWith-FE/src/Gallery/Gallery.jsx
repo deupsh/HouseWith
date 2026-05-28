@@ -57,7 +57,7 @@ const Gallery = () => {
         title: p.title,
         date: p.date,
         album: p.album,
-        url: `http://localhost/uploads/photo/${p.fileName}`, 
+        url: `http://${window.location.hostname}/uploads/photo/${p.fileName}`, 
         isThumbnail: p.thumbnail
       }));
       

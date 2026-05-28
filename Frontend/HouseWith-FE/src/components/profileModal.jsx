@@ -30,7 +30,7 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
     if (!imagePath) return '';
     // DB 경로(시작이 '/')일 경우, 한글/공백을 안전하게 인코딩(encodeURI)해서 합쳐줍니다.
     if (imagePath.startsWith('/')) {
-      return `http://localhost/uploads${encodeURI(imagePath)}`;
+      return `http://${window.location.hostname}/uploads${encodeURI(imagePath)}`;
     }
     // 방금 업로드한 Base64 데이터면 그대로 반환
     return imagePath;
