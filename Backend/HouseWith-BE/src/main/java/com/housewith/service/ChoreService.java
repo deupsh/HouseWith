@@ -246,28 +246,28 @@ public class ChoreService {
 
         int failedCount = 0;
 
-        // 5. 담당자별로 어제 완료 기록이 있는지 확인하고 없으면 미완료(실패) 기록 생성
+        // 5. 집안일(Chore) 기준으로 먼저 완료 여부 판단 후, 미완료 시 담당자들에게 0점 부여
         for (Chore chore : yesterdayChores) {
-            // 이 집안일의 담당자들만 필터링
-            List<ChoreParticipant> choreParticipants = participants.stream()
-                    .filter(p -> p.getChoreId().equals(chore.getId()))
-                    .toList();
+            
+            // 🚨 수정 핵심: "누가 했든 상관없이, 어제 이 집안일에 대한 완료 기록(isCompleted = 1)이 1개라도 있는가?"
+            boolean isChoreCompleted = yesterdayRecords.stream()
+                    .anyMatch(r -> r.getChoreId().equals(chore.getId()) && r.getIsCompleted());
 
-            for (ChoreParticipant participant : choreParticipants) {
-                // 어제 이 담당자가 이 집안일을 완료한 기록이 있는가?
-                boolean isDone = yesterdayRecords.stream()
-                        .anyMatch(r -> r.getChoreId().equals(chore.getId())
-                                && r.getProfileId().equals(participant.getProfileId())
-                                && r.getIsCompleted());
+            // 아무도 이 집안일을 완료하지 않았다면 (isChoreCompleted == false)
+            if (!isChoreCompleted) {
+                
+                // 이 집안일에 배정된 불쌍한 담당자들을 찾아서 모두에게 0점(미완료) 폭탄을 내립니다.
+                List<ChoreParticipant> choreParticipants = participants.stream()
+                        .filter(p -> p.getChoreId().equals(chore.getId()))
+                        .toList();
 
-                // 완료 기록이 없다면 실패 이력 적재
-                if (!isDone) {
+                for (ChoreParticipant participant : choreParticipants) {
                     ChoreRecord failedRecord = ChoreRecord.builder()
                             .choreId(chore.getId())
                             .profileId(participant.getProfileId())
                             .build();
 
-                    // 성현님의 방식(Reflection)을 응용하여 completedAt을 어제 23:59:59로 꼼수 세팅!
+                    // 시간을 어제 날짜로 조작
                     ReflectionUtils_setFailedAt(failedRecord, endOfYesterday);
                     
                     choreRecordRepository.save(failedRecord);
