@@ -49,9 +49,10 @@ public class ChoreController {
     @PutMapping("/{choreId}")
     public ResponseEntity<Void> updateChore(
     		@PathVariable("choreId") Long choreId,
+    		@AuthenticationPrincipal Long userId,
             @Valid @RequestBody ChoreUpdateRequest request) {
         
-        choreService.updateChore(choreId, request);
+    	choreService.updateChore(choreId, userId, request);
         return ResponseEntity.ok().build();
     }
 
@@ -70,17 +71,19 @@ public class ChoreController {
     @PatchMapping("/{choreId}/done")
     public ResponseEntity<Void> toggleChoreDone(
     		@PathVariable("choreId") Long choreId,
+    		@AuthenticationPrincipal Long userId,
             @RequestHeader("X-Profile-Id") Long profileId) {
         
         LocalDate today = LocalDate.now(); 
-        choreService.toggleChoreComplete(choreId, profileId, today);
+        choreService.toggleChoreComplete(choreId, userId, profileId, today);
         return ResponseEntity.ok().build();
     }
 
     // 집안일 삭제
     @DeleteMapping("/{choreId}")
-    public ResponseEntity<Void> deleteChore(@PathVariable("choreId") Long choreId) {
-        choreService.deleteChore(choreId);
+    public ResponseEntity<Void> deleteChore(@PathVariable("choreId") Long choreId,
+    		@AuthenticationPrincipal Long userId) {
+    	choreService.deleteChore(choreId, userId);
         return ResponseEntity.noContent().build(); 
     }
 }

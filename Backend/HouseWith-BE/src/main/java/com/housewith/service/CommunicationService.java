@@ -45,6 +45,13 @@ public class CommunicationService {
     // 오늘의 기분 설정
     @Transactional
     public Long createMood(Long userId, Long slotId, MoodCreateRequest request) {
+    	// 프로필 소유 권한 검증
+    	Profile profile = profileRepository.findById(slotId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로필입니다."));
+        if (!profile.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+    	
         FamilyMood mood = FamilyMood.builder()
                 .userId(userId)
                 .profileId(slotId)
@@ -93,8 +100,15 @@ public class CommunicationService {
 
     // 주간 질문 답변 제출
     @Transactional
-    public Long submitAnswer(Long profileId, Long questionId, AnswerCreateRequest request) {
-        UserAnswer answer = UserAnswer.builder()
+    public Long submitAnswer(Long userId, Long profileId, Long questionId, AnswerCreateRequest request) {
+        // 프로필 소유 권한 검증
+    	Profile profile = profileRepository.findById(profileId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로필입니다."));
+        if (!profile.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+    	
+    	UserAnswer answer = UserAnswer.builder()
                 .profileId(profileId)
                 .questionId(questionId)
                 .content(request.getContent())

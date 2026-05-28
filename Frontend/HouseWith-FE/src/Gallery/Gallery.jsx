@@ -126,6 +126,9 @@ const Gallery = () => {
       
     } catch (error) {
       console.error("사진 삭제 실패:", error);
+      // 🚨 에러 팝업 추가
+      const errorMsg = error.response?.data?.message || "사진을 삭제할 권한이 없거나 실패했습니다.";
+      alert(errorMsg);
     } finally {
       setIsConfirmOpen(false);
       setPhotoToDelete(null);
@@ -210,7 +213,9 @@ const Gallery = () => {
 
     } catch (error) {
       console.error("사진 저장 실패:", error);
-      alert("사진 저장 중 오류가 발생했습니다.");
+      // 🚨 하드코딩된 alert 대신 백엔드 에러 메시지 띄워주기
+      const errorMsg = error.response?.data?.message || "사진 저장 중 오류가 발생했습니다.";
+      alert(errorMsg);
     }
   };
 
@@ -237,6 +242,9 @@ const Gallery = () => {
       );
     } catch (error) {
       console.error("대표 사진 변경 실패:", error);
+      // 🚨 에러 팝업 추가
+      const errorMsg = error.response?.data?.message || "대표 사진을 변경할 수 없습니다.";
+      alert(errorMsg);
     }
   };
 

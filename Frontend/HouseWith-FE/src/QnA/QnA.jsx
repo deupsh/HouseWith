@@ -92,6 +92,9 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
       setMyAnswerInput('');
     } catch (error) {
       console.error("답변 제출 실패:", error);
+      // 🚨 조용히 넘어가지 않도록 알림 추가
+      const errorMsg = error.response?.data?.message || "답변 제출에 실패했습니다.";
+      alert(errorMsg);
     }
   };
 
@@ -103,7 +106,10 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
       fetchWeeklyQuestion();
     } catch (error) {
       console.error("설정 변경 실패:", error);
-      setIsQuestionEnabled(!newState);
+      setIsQuestionEnabled(!newState); // 롤백
+      // 🚨 스위치가 다시 돌아간 이유를 유저에게 설명
+      const errorMsg = error.response?.data?.message || "설정 변경 중 오류가 발생했습니다.";
+      alert(errorMsg);
     }
   };
 

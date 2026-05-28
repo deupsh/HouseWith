@@ -69,10 +69,11 @@ public class CommunicationController {
     @PostMapping("/questions/{questionId}/answers")
     public ResponseEntity<Void> submitAnswer(
     		@PathVariable("questionId") Long questionId,
+    		@AuthenticationPrincipal Long userId,
             @RequestHeader("X-Profile-Id") Long profileId,
             @Valid @RequestBody AnswerCreateRequest request) {
         
-        communicationService.submitAnswer(profileId, questionId, request);
+    	communicationService.submitAnswer(userId, profileId, questionId, request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     

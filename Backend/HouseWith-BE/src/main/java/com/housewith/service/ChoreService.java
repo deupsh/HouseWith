@@ -78,9 +78,14 @@ public class ChoreService {
 
     // 집안일 수정
     @Transactional
-    public void updateChore(Long choreId, ChoreUpdateRequest request){
+    public void updateChore(Long choreId, Long userId, ChoreUpdateRequest request){
         Chore chore = choreRepository.findById(choreId)
             .orElseThrow(() -> new IllegalArgumentException("해당 집안일을 찾을 수 없습니다."));
+        
+        // 권한 방어
+        if (!chore.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
         
         // 정보 업데이트
         chore.updateChoreDetails(
@@ -175,8 +180,16 @@ public class ChoreService {
 
     // 집안일 완료 및 취소 토글 처리
     @Transactional
-    public void toggleChoreComplete(Long choreId, Long ProfileId, LocalDate date){
-        LocalDateTime atStartOfDay = date.atStartOfDay();
+    public void toggleChoreComplete(Long choreId, Long userId, Long ProfileId, LocalDate date){
+    	// 객체 검증 및 권한
+    	Chore chore = choreRepository.findById(choreId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 집안일을 찾을 수 없습니다."));
+
+            if (!chore.getUser().getId().equals(userId)) {
+                throw new IllegalArgumentException("권한이 없습니다.");
+            }
+    	
+    	LocalDateTime atStartOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
 
         // 해당 날짜에 기록이 이미 있는지 확인
@@ -213,7 +226,14 @@ public class ChoreService {
 
     // 집안일 삭제 (관련 매핑 데이터도 연쇄 삭제)
     @Transactional
-    public void deleteChore(Long choreId) {
+    public void deleteChore(Long choreId, Long userId) {
+    	Chore chore = choreRepository.findById(choreId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 집안일을 찾을 수 없습니다."));
+
+            if (!chore.getUser().getId().equals(userId)) {
+                throw new IllegalArgumentException("권한이 없습니다.");
+            }
+    	
         choreParticipantRepository.deleteByChoreId(choreId);
         choreRepository.deleteById(choreId);
     }
@@ -229,7 +249,7 @@ public class ChoreService {
         // 2. 모든 집안일 마스터 정보 조회
         List<Chore> allChores = choreRepository.findAll();
 
-        // 3. 성현님이 만든 메서드 재활용! 어제 수행해야 했던 집안일만 필터링
+        // 3. 메서드 재활용! 어제 수행해야 했던 집안일만 필터링
         List<Chore> yesterdayChores = allChores.stream()
                 .filter(chore -> isChoreScheduledOnDate(chore, yesterday))
                 .toList();

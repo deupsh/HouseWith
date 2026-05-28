@@ -85,9 +85,14 @@ public class CalendarService {
 
     // 5_2 일정 수정 (PUT /api/calendars/{calendarId})
     @Transactional
-    public void updateCalendar(Long calendarId, CalendarUpdateRequest request) {
+    public void updateCalendar(Long calendarId, Long userId, CalendarUpdateRequest request) {
         Calendar calendar = calendarRepository.findById(calendarId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 일정입니다."));
+        
+        // 권한 검증
+        if (!calendar.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("권한이 없습니다."); // GlobalExceptionHandler가 403으로 변환
+        }
 
         // 1. 더티 체킹을 통한 일정 기본 정보 업데이트
         calendar.modifyCalendarDetails(
@@ -179,9 +184,13 @@ public class CalendarService {
 
     // 5_5 일정 삭제 (DELETE /api/calendars/{calendarId})
     @Transactional
-    public void deleteCalendar(Long calendarId) {
-        if (!calendarRepository.existsById(calendarId)) {
-            throw new IllegalArgumentException("존재하지 않는 일정입니다.");
+    public void deleteCalendar(Long calendarId, Long userId) {
+    	Calendar calendar = calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 일정입니다."));
+        
+        // 권한 검증 추가
+        if (!calendar.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
         }
         // 자식 테이블(참여자 매핑) 데이터 선행 삭제 후 부모 테이블 삭제
         calendarParticipantRepository.deleteByCalendarId(calendarId);
