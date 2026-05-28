@@ -165,6 +165,38 @@ public class ChoreService {
             int currentWeek = date.get(WeekFields.ISO.weekOfWeekBasedYear());
             return currentWeek % 2 == 0; // 짝수 주차에만 노출 (기획에 따라 홀수로 변경 가능)
         }
+        /*
+        // 미검증 격주 로직(검증 필요)
+        if (type == 3) { // 3: 격주 
+            int currentDayOfWeek = date.getDayOfWeek().getValue() - 1;
+            if (currentDayOfWeek != value) return false;
+            
+            // [보완] JPA Auditing null 안전성 확보
+            LocalDateTime createdDateTime = chore.getCreatedAt();
+            LocalDate createdAt = (createdDateTime != null) ? createdDateTime.toLocalDate() : LocalDate.now();
+            
+            // 1. JS 요일(0:일 ~ 6:토)을 Java DayOfWeek(1:월 ~ 7:일) 체계로 변환
+            int javaDayValue = (value == 0) ? 7 : value;
+            java.time.DayOfWeek targetDayOfWeek = java.time.DayOfWeek.of(javaDayValue);
+            
+            // 2. 생성일 '당일 또는 그 이후' 최초로 돌아오는 해당 요일을 첫 실행일로 지정
+            LocalDate firstOccurrenceDate = createdAt.with(
+                java.time.temporal.TemporalAdjusters.nextOrSame(targetDayOfWeek)
+            );
+            
+            // [보완] 첫 실행일보다 이전 날짜를 조회하는 경우 무조건 제외 (과거 노출 버그 차단)
+            if (date.isBefore(firstOccurrenceDate)) return false;
+            
+            // 3. 최초 실행일이 속한 주와 현재 검사하는 주 사이의 '주(Week) 차이' 계산
+            long weeksBetween = java.time.temporal.ChronoUnit.WEEKS.between(
+                firstOccurrenceDate.with(java.time.DayOfWeek.MONDAY), 
+                date.with(java.time.DayOfWeek.MONDAY)
+            );
+            
+            // 4. 최초 실행 주(차이 0) 및 2주 간격 노출
+            return weeksBetween % 2 == 0; 
+        }
+        */
         if (type == 4) { // 4: 매월 (날짜 일치)
             return date.getDayOfMonth() == value;
         }
