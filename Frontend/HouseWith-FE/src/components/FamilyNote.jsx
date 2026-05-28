@@ -114,7 +114,7 @@ const FamilyNote = () => {
     if (member.profile_type === 1 && member.custom_profile_image) {
       return (
         <img 
-          src={`http://localhost/uploads${member.custom_profile_image}`} 
+          src={`http://${window.location.hostname}/uploads${member.custom_profile_image}`} 
           alt={member.nickname} 
           style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
         />

@@ -312,7 +312,7 @@ const Account = ({ onSelect, showToast}) => {
 
               {profile.profile_type === 1 ? (
                 <img 
-                  src={`http://localhost/uploads${profile.custom_profile_image}`} 
+                  src={`http://${window.location.hostname}/uploads${profile.custom_profile_image}`} 
                   alt="slot-profile" 
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                 />
