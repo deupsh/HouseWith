@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // 🌟 Axios 임포트 추가!
+import axios from 'axios';
 import './Analysis.css';
 
 // 깡통 데이터
@@ -27,6 +27,8 @@ const getCategoryColor = (index) => {
 };
 
 const getPieSlice = (percent, offset, radius) => {
+  // 0%일 경우 에러 방지
+  if (percent <= 0) return '';
   const startAngle = offset * 2 * Math.PI - Math.PI / 2;
   const endAngle = (offset + percent) * 2 * Math.PI - Math.PI / 2;
   const x1 = 100 + radius * Math.cos(startAngle);
@@ -34,6 +36,10 @@ const getPieSlice = (percent, offset, radius) => {
   const x2 = 100 + radius * Math.cos(endAngle);
   const y2 = 100 + radius * Math.sin(endAngle);
   const largeArcFlag = percent > 0.5 ? 1 : 0;
+  // 100%일 경우 원 전체를 그리는 예외 처리
+  if (percent >= 1) {
+    return `M 100 100 m -${radius}, 0 a ${radius},${radius} 0 1,0 ${radius * 2},0 a ${radius},${radius} 0 1,0 -${radius * 2},0`;
+  }
   return `M 100 100 L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
 };
 
@@ -45,67 +51,70 @@ const getLabelCoords = (percent, offset, radius) => {
 };
 
 const Analysis = () => {
-  // 🌟 1. 진짜 통신 데이터를 담을 상태(State) 생성 (초기값은 빈 깡통)
   const [data, setData] = useState(DEFAULT_EMPTY_DATA);
-  const [isLoading, setIsLoading] = useState(true); // 로딩 상태
+  const [isLoading, setIsLoading] = useState(true);
 
   const [showCharts, setShowCharts] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [hoveredMember, setHoveredMember] = useState(null);
 
-  // 🌟 2. 백엔드에서 데이터 가져오는 함수 생성
   const fetchWeeklyAnalysis = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      // 오늘 날짜 구하기 (YYYY-MM-DD 형식)
-      const today = new Date().toISOString().split('T')[0]; 
-
-      // 백엔드 주방에 주간 분석 데이터 주문!
       const response = await axios.get('/api/statistics', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
       console.log("통계 데이터 도착 완료!", response.data);
-      setData(response.data); // 주방에서 준 진짜 데이터로 덮어쓰기!
-
+      setData(response.data);
     } catch (error) {
       console.error("통계 조회 실패 (서버가 아직 준비 안 됨):", error);
-      // 백엔드가 아직 완성 안 되었으니, 에러가 나면 아까 쓰던 MOCK 데이터를 임시로 띄워줍니다.
-      // 🚨 (나중에 백엔드 완성되면 아래 두 줄은 지우시면 됩니다!)
       console.log("임시 더미 데이터를 화면에 표시합니다.");
       setData(DEFAULT_EMPTY_DATA);
     } finally {
-      setIsLoading(false); // 로딩 끝!
+      setIsLoading(false);
     }
   };
 
-  // 🌟 3. 화면이 맨 처음 켜질 때 딱 한 번 실행 (useEffect)
   useEffect(() => {
-    fetchWeeklyAnalysis(); // 데이터 가져오기 실행
-    setTimeout(() => setShowCharts(true), 300); // 차트 애니메이션 실행 타이밍 조절
+    fetchWeeklyAnalysis();
+    setTimeout(() => setShowCharts(true), 300);
   }, []);
 
-  // ----------------------------------------------------------
-  // 로딩 중일 때 보여줄 화면 (선택 사항)
   if (isLoading) {
     return <div style={{ textAlign: 'center', padding: '50px' }}>데이터를 분석하는 중입니다... 🔄</div>;
   }
-  // ----------------------------------------------------------
 
-  let currentOffset = 0;
+  // 1. 카테고리 원형 그래프 데이터 계산
+  let currentCatOffset = 0;
   const pieSlices = data.categoryStats.map((cat, index) => {
     const percentDec = cat.percentage / 100;
     const radius = 90; 
-    const pathData = getPieSlice(percentDec, currentOffset, radius);
-    const labelCoords = getLabelCoords(percentDec, currentOffset, radius * 0.65); 
+    const pathData = getPieSlice(percentDec, currentCatOffset, radius);
+    const labelCoords = getLabelCoords(percentDec, currentCatOffset, radius * 0.65); 
     
     const sliceData = { ...cat, color: getCategoryColor(index), pathData, labelCoords, index };
-    currentOffset += percentDec;
+    currentCatOffset += percentDec;
+    return sliceData;
+  });
+
+  // 🚨 2. 구성원별 원형 그래프 데이터 계산 (새로 추가됨!)
+  let currentMemOffset = 0;
+  // 전체 집계된 횟수 (총 집안일 수와 다를 수 있으므로 구성원 count의 합을 구함)
+  const totalMemberCount = data.memberStats.reduce((sum, member) => sum + member.count, 0);
+  const memberPieSlices = data.memberStats.map((member, index) => {
+    // 0 나누기 방지
+    const percentage = totalMemberCount === 0 ? 0 : (member.count / totalMemberCount) * 100;
+    const percentDec = percentage / 100;
+    const radius = 90;
+    const pathData = getPieSlice(percentDec, currentMemOffset, radius);
+    const labelCoords = getLabelCoords(percentDec, currentMemOffset, radius * 0.65);
+
+    const sliceData = { ...member, percentage, color: getMemberColor(index), pathData, labelCoords, index };
+    currentMemOffset += percentDec;
     return sliceData;
   });
 
   return (
-    // ... 이 아래로는 <div>부터 시작하는 return 안쪽 HTML 구조를 원래 코드 그대로 복붙하시면 됩니다! (수정할 내용 없음) ...
     <div className="analysis-page">
       <div className="analysis-header">
         <h2>{data.weekLabel} 분석</h2>
@@ -121,7 +130,6 @@ const Analysis = () => {
           </div>
         </div>
 
-        {/* API에서 isOverloaded가 true일 때만 경고 노출 */}
         {data.isOverloaded && data.overloadComment && (
           <div className="ai-card warning-card">
             <div className="ai-icon-wrapper"><span className="ai-icon">❗</span></div>
@@ -141,32 +149,7 @@ const Analysis = () => {
         </div>
       </div>
 
-      <div className="chart-card">
-        <h3>구성원별 참여도</h3>
-        <div className="bar-chart-container">
-          <div className="y-axis">
-            <span>20</span><span>15</span><span>10</span><span>5</span>
-          </div>
-          <div className="chart-area" onMouseLeave={() => setHoveredMember(null)}>
-            {data.memberStats.map((member, idx) => {
-              const color = getMemberColor(idx);
-              return (
-                <div 
-                  key={idx} 
-                  className={`bar-column ${hoveredMember === member.nickname ? 'hovered' : ''} ${hoveredMember && hoveredMember !== member.nickname ? 'dimmed' : ''}`}
-                  onMouseEnter={() => setHoveredMember(member.nickname)}
-                >
-                  <div className="bar" style={{ height: showCharts ? `${(member.count / 20) * 100}%` : '0%', backgroundColor: color }}>
-                    <span className="bar-tooltip">{member.count}회</span>
-                  </div>
-                  <span className="bar-label">{member.nickname}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
+      {/* 🚨 순서 변경 1: 요약 통계(총 집안일, 일평균, 완료율)가 가장 먼저 배치됨 */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon">📅</div>
@@ -180,72 +163,117 @@ const Analysis = () => {
         </div>
         <div className="stat-card">
           <div className="stat-icon">🤍</div>
-          <p className="stat-title">참여율</p>
+          <p className="stat-title">완료율</p>
           <p className="stat-value">{Math.round(data.participationRate)}<span>%</span></p>
         </div>
       </div>
 
-      {/* 주간 패턴 데이터 임시 하드코딩 유지, 필요없으면 지워도 됨 */}
+      {/* 🚨 순서 변경 2: 구성원별 참여도를 원형 그래프(Pie Chart)로 변경하여 배치 */}
       <div className="chart-card">
-        <h3>주간 활동 패턴</h3>
-        <div className="pattern-bars">
-          <div className="pattern-row">
-            <span className="pattern-label">평일</span>
-            <div className="pattern-track">
-              <div className="pattern-fill" style={{ width: showCharts ? '75%' : '0%', backgroundColor: '#7A9D8C' }}></div>
+        <h3>구성원별 참여도</h3>
+        {totalMemberCount === 0 ? (
+          <p style={{ textAlign: 'center', padding: '20px', color: '#999' }}>아직 완료된 집안일이 없습니다.</p>
+        ) : (
+          <div className="pie-chart-wrapper">
+            <svg viewBox="0 0 200 200" className={`interactive-pie ${showCharts ? 'animate' : ''}`}>
+              {memberPieSlices.map((slice) => (
+                <g
+                  key={slice.nickname}
+                  className={`pie-slice-group ${hoveredMember === slice.nickname ? 'hovered' : ''}`}
+                  onMouseEnter={() => setHoveredMember(slice.nickname)}
+                  onMouseLeave={() => setHoveredMember(null)}
+                >
+                  <path d={slice.pathData} fill={slice.color} className="pie-path" />
+                  {/* 조각이 너무 작으면 텍스트를 숨기거나 표시하는 로직 (선택적) */}
+                  {slice.percentage > 5 && (
+                    <>
+                      <text x={slice.labelCoords.x} y={slice.labelCoords.y - 4} className="pie-label-text">
+                        {slice.nickname}
+                      </text>
+                      <text x={slice.labelCoords.x} y={slice.labelCoords.y + 12} className="pie-label-percent">
+                        {Math.round(slice.percentage)}%
+                      </text>
+                    </>
+                  )}
+                </g>
+              ))}
+            </svg>
+            
+            <div className="pie-legend">
+              {memberPieSlices.map((slice, idx) => (
+                <div 
+                  key={idx} 
+                  className={`legend-item ${hoveredMember === slice.nickname ? 'hovered' : ''}`}
+                  onMouseEnter={() => setHoveredMember(slice.nickname)}
+                  onMouseLeave={() => setHoveredMember(null)}
+                  // 🚨 전체를 가로 정렬하되, 간격을 살짝 줍니다.
+                  style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
+                >
+                  {/* 왼쪽 색상 동그라미 */}
+                  <span className="legend-color" style={{ backgroundColor: slice.color, width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0, marginRight: '10px' }}></span>
+                  
+                  {/* 🚨 닉네임과 횟수를 세로(column)로 배치하는 영역 */}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span className="legend-name" style={{ fontWeight: 'bold', fontSize: '14px', color: '#333' }}>
+                      {slice.nickname}
+                    </span>
+                    <span className="legend-percent" style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                      {Math.round(slice.percentage)}% ({slice.count}회)
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
-            <span className="pattern-percent">75%</span>
           </div>
-          <div className="pattern-row">
-            <span className="pattern-label">주말</span>
-            <div className="pattern-track">
-              <div className="pattern-fill" style={{ width: showCharts ? '25%' : '0%', backgroundColor: '#D4A373' }}></div>
-            </div>
-            <span className="pattern-percent">25%</span>
-          </div>
-        </div>
-        <p className="pattern-desc">
-          평일에 집안일이 집중되어 있네요. 주말에도 조금씩 나누어서 하면 평일 부담이 줄어들 거예요!
-        </p>
+        )}
       </div>
 
+      {/* 🚨 순서 변경 3: 카테고리별 분포 그래프를 가장 아래로 이동 */}
       <div className="chart-card">
         <h3>카테고리별 분포</h3>
-        <div className="pie-chart-wrapper">
-          <svg viewBox="0 0 200 200" className={`interactive-pie ${showCharts ? 'animate' : ''}`}>
-            {pieSlices.map((slice) => (
-              <g
-                key={slice.categoryName}
-                className={`pie-slice-group ${hoveredCategory === slice.categoryName ? 'hovered' : ''}`}
-                onMouseEnter={() => setHoveredCategory(slice.categoryName)}
-                onMouseLeave={() => setHoveredCategory(null)}
-              >
-                <path d={slice.pathData} fill={slice.color} className="pie-path" />
-                <text x={slice.labelCoords.x} y={slice.labelCoords.y - 4} className="pie-label-text">
-                  {slice.categoryName}
-                </text>
-                <text x={slice.labelCoords.x} y={slice.labelCoords.y + 12} className="pie-label-percent">
-                  {Math.round(slice.percentage)}%
-                </text>
-              </g>
-            ))}
-          </svg>
-          
-          <div className="pie-legend">
-            {pieSlices.map((slice, idx) => (
-              <div 
-                key={idx} 
-                className={`legend-item ${hoveredCategory === slice.categoryName ? 'hovered' : ''}`}
-                onMouseEnter={() => setHoveredCategory(slice.categoryName)}
-                onMouseLeave={() => setHoveredCategory(null)}
-              >
-                <span className="legend-color" style={{ backgroundColor: slice.color }}></span>
-                <span className="legend-name">{slice.categoryName}</span>
-                <span className="legend-percent">{slice.percentage}%</span>
-              </div>
-            ))}
+        {data.totalCount === 0 ? (
+           <p style={{ textAlign: 'center', padding: '20px', color: '#999' }}>아직 완료된 집안일이 없습니다.</p>
+        ) : (
+          <div className="pie-chart-wrapper">
+            <svg viewBox="0 0 200 200" className={`interactive-pie ${showCharts ? 'animate' : ''}`}>
+              {pieSlices.map((slice) => (
+                <g
+                  key={slice.categoryName}
+                  className={`pie-slice-group ${hoveredCategory === slice.categoryName ? 'hovered' : ''}`}
+                  onMouseEnter={() => setHoveredCategory(slice.categoryName)}
+                  onMouseLeave={() => setHoveredCategory(null)}
+                >
+                  <path d={slice.pathData} fill={slice.color} className="pie-path" />
+                  {slice.percentage > 5 && (
+                    <>
+                      <text x={slice.labelCoords.x} y={slice.labelCoords.y - 4} className="pie-label-text">
+                        {slice.categoryName}
+                      </text>
+                      <text x={slice.labelCoords.x} y={slice.labelCoords.y + 12} className="pie-label-percent">
+                        {Math.round(slice.percentage)}%
+                      </text>
+                    </>
+                  )}
+                </g>
+              ))}
+            </svg>
+            
+            <div className="pie-legend">
+              {pieSlices.map((slice, idx) => (
+                <div 
+                  key={idx} 
+                  className={`legend-item ${hoveredCategory === slice.categoryName ? 'hovered' : ''}`}
+                  onMouseEnter={() => setHoveredCategory(slice.categoryName)}
+                  onMouseLeave={() => setHoveredCategory(null)}
+                >
+                  <span className="legend-color" style={{ backgroundColor: slice.color }}></span>
+                  <span className="legend-name">{slice.categoryName}</span>
+                  <span className="legend-percent">{Math.round(slice.percentage)}%</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
