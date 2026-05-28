@@ -1,47 +1,54 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Target, User, Phone, Mail } from 'lucide-react';
+import { Target, Phone, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './Auth.css';
 
 const Find = () => {
   const [activeTab, setActiveTab] = useState('id');
-
-  //  1. 사용자가 입력할 폼 데이터 상태
-  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-
-  //  2. 화면에 띄워줄 결과 메시지 상태 (성공/에러)
+  const [foundEmails, setFoundEmails] = useState([]); 
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // 탭 변경 시 입력값과 메시지 초기화
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setMessage({ type: '', text: '' });
-    setName('');
+    setFoundEmails([]);
     setPhone('');
     setEmail('');
   };
 
-  //  3. 아이디 찾기 API 호출
+  // 3. 아이디 찾기 API 호출 (POST 보정)
   const handleFindIdSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !phone) {
-      setMessage({ type: 'error', text: '이름과 전화번호를 모두 입력해주세요.' });
+    if (!phone) {
+      setMessage({ type: 'error', text: '전화번호를 입력해주세요.' });
       return;
     }
 
     try {
-      const response = await axios.post('/api/auth/find-id', { name, phone });
-      setMessage({ type: 'success', text: `회원님의 아이디는 [ ${response.data.email} ] 입니다.` });
+      setMessage({ type: '', text: '' });
+      setFoundEmails([]);
+
+      const response = await axios.post('/api/auth/find-email', { 
+        phoneNumber: phone 
+      });
+      
+      setFoundEmails(response.data);
+      setMessage({ type: 'success', text: '회원님의 정보와 일치하는 계정을 찾았습니다.' });
     } catch (error) {
       console.error("아이디 찾기 실패:", error);
-      setMessage({ type: 'error', text: '입력하신 정보와 일치하는 계정을 찾을 수 없습니다. (서버 미연결)' });
+      
+      // ✨ 스프링 에러 객체가 들어올 경우 내부 message 텍스트만 추출하여 크래시 방지
+      const serverMessage = error.response?.data?.message || error.response?.data;
+      const errorText = typeof serverMessage === 'string' ? serverMessage : '계정을 찾을 수 없거나 서버 오류가 발생했습니다.';
+      
+      setMessage({ type: 'error', text: errorText });
     }
   };
 
-  //  4. 비밀번호 찾기(재설정 메일 발송) API 호출
+  // 4. 비밀번호 확인 API 호출 (POST 보정)
   const handleFindPasswordSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
@@ -50,11 +57,24 @@ const Find = () => {
     }
 
     try {
-      await axios.post('/api/auth/reset-password', { email });
-      setMessage({ type: 'success', text: '입력하신 이메일로 비밀번호 재설정 링크를 발송했습니다.' });
+      setMessage({ type: '', text: '' });
+
+      const response = await axios.post('/api/auth/find-password', { 
+        email: email 
+      });
+      
+      setMessage({ 
+        type: 'success', 
+        text: `임시 비밀번호가 발급되었습니다: [ ${response.data} ]` 
+      });
     } catch (error) {
       console.error("비밀번호 찾기 실패:", error);
-      setMessage({ type: 'error', text: '가입되지 않은 이메일이거나 서버와 연결할 수 없습니다.' });
+      
+      // ✨ 스프링 에러 객체가 들어올 경우 내부 message 텍스트만 추출하여 크래시 방지
+      const serverMessage = error.response?.data?.message || error.response?.data;
+      const errorText = typeof serverMessage === 'string' ? serverMessage : '존재하지 않는 이메일이거나 서버 오류가 발생했습니다.';
+      
+      setMessage({ type: 'error', text: errorText });
     }
   };
 
@@ -87,22 +107,9 @@ const Find = () => {
           </div>
 
           {activeTab === 'id' ? (
-            // [아이디 찾기] 내용
             <form className="tab-content" onSubmit={handleFindIdSubmit}>
-              <p className="tab-description">가입 시 등록한 이름과 전화번호를 입력하시면 아이디를 알려드립니다.</p>
-              <div className="form-field">
-                <label htmlFor="name">이름</label>
-                <div className="input-with-icon">
-                  <User className="input-icon" />
-                  <input 
-                    type="text" 
-                    id="name" 
-                    placeholder="홍길동" 
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-              </div>
+              <p className="tab-description">가입 시 등록한 전화번호를 입력하시면 마스킹된 아이디 목록을 알려드립니다.</p>
+              
               <div className="form-field">
                 <label htmlFor="phone">전화번호</label>
                 <div className="input-with-icon">
@@ -118,17 +125,28 @@ const Find = () => {
               </div>
               
               {message.text && (
-                <div style={{ color: message.type === 'success' ? '#7A9D8C' : '#FF6B6B', fontSize: '0.9rem', textAlign: 'center', marginTop: '-5px', marginBottom: '15px', fontWeight: 'bold' }}>
+                <div style={{ color: message.type === 'success' ? '#7A9D8C' : '#FF6B6B', fontSize: '0.9rem', textAlign: 'center', marginBottom: '15px', fontWeight: 'bold' }}>
                   {message.text}
+                </div>
+              )}
+
+              {foundEmails.length > 0 && (
+                <div style={{ backgroundColor: '#F4F7F5', padding: '12px', borderRadius: '8px', marginBottom: '15px' }}>
+                  <ul style={{ listStyleType: 'none', padding: 0, margin: 0, textAlign: 'center' }}>
+                    {foundEmails.map((emailStr, idx) => (
+                      <li key={idx} style={{ color: '#333', fontSize: '0.95rem', fontWeight: '600', padding: '4px 0' }}>
+                        {emailStr}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 
               <button type="submit" className="main-button">아이디 찾기</button>
             </form>
           ) : (
-            // [비밀번호 찾기] 내용
             <form className="tab-content" onSubmit={handleFindPasswordSubmit}>
-              <p className="tab-description">가입 시 사용한 이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다.</p>
+              <p className="tab-description">가입 시 사용한 이메일 주소를 입력하시면 임시 비밀번호를 화면에 즉시 발급해 드립니다.</p>
               <div className="form-field">
                 <label htmlFor="email">이메일</label>
                 <div className="input-with-icon">
@@ -144,12 +162,19 @@ const Find = () => {
               </div>
 
               {message.text && (
-                <div style={{ color: message.type === 'success' ? '#7A9D8C' : '#FF6B6B', fontSize: '0.9rem', textAlign: 'center', marginTop: '-5px', marginBottom: '15px', fontWeight: 'bold' }}>
-                  {message.text}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '15px' }}>
+                  <div style={{ color: message.type === 'success' ? '#7A9D8C' : '#FF6B6B', fontSize: '0.95rem', textAlign: 'center', fontWeight: 'bold' }}>
+                    {message.text}
+                  </div>
+                  {message.type === 'success' && (
+                    <small style={{ color: '#888', fontSize: '0.75rem', textAlign: 'center' }}>
+                      * 안전을 위해 로그인 후 마이페이지에서 비밀번호를 꼭 변경해 주세요.
+                    </small>
+                  )}
                 </div>
               )}
 
-              <button type="submit" className="main-button">메일 보내기</button>
+              <button type="submit" className="main-button">임시 비밀번호 발급</button>
             </form>
           )}
         </div>

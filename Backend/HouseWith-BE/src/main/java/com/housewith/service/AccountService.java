@@ -3,6 +3,8 @@ package com.housewith.service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,11 +30,12 @@ import lombok.RequiredArgsConstructor;
 
 /** 작성자: 백승훈
  * 작성 시간: 2026-05-20/1641i
- * 마지막 수정자: 박성현
- * 마지막 수정 시간: 2026-05-22/1428i
+ * 마지막 수정자: 백승훈
+ * 마지막 수정 시간: 2026-05-28/1009i
  * 수정 내용: 슬롯 삭제, 회원 탈퇴 메소드 추가 (박성현 - 2026-05-22/0915i)
  * PIN 번호 수정 분리 (박성현 - 2026-05-22/1111i)
  * 슬롯 정보 Resopnse가 PK만 반환 → SlotItem DTO 반환 (박성현 - 2026-05-22/1428i)S
+ * 아이디, 비밀번호 찾기 추가 (백승훈 - 2026-05-28/1009i)
  * 역할: 가족 그룹 계정의 보안 인증(회원가입/로그인)과 개별 구성원 슬롯의 전체 생명주기(생성/수정/접속/삭제)를 총괄하는 서비스 */
 
 @Service
@@ -274,5 +277,59 @@ public class AccountService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계정입니다."));
 
         userRepository.delete(user);
+    }
+
+    /**
+     * 아이디(이메일) 찾기 - 마스킹 및 다중 계정 대응
+     */
+    public List<String> findEmail(String phoneNumber) {
+        List<User> users = userRepository.findByPhoneNumber(phoneNumber);
+        if (users.isEmpty()) {
+            throw new IllegalArgumentException("해당 번호로 가입된 계정을 찾을 수 없습니다.");
+        }
+
+        // 검색된 모든 이메일을 마스킹 처리하여 리스트로 변환
+        return users.stream()
+                .map(User::getEmail)
+                .map(this::maskEmail)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 비밀번호 확인 - 복호화가 불가능하므로 임시 비밀번호 발급 후 평문 반환
+     */
+    @Transactional // ✨ 데이터가 변경되므로 무조건 붙여야 합니다.
+    public String findPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+
+        // 1. 랜덤 8자리 임시 비밀번호 생성 (예: a1b2c3d4)
+        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+        
+        // 2. 새로운 비밀번호를 해시화하여 DB에 덮어쓰기
+        // (User 엔티티에 비밀번호 변경 메서드가 없다면 생성하거나, @Setter가 있다면 user.setPassword() 사용)
+        user.updatePassword(passwordEncoder.encode(tempPassword)); 
+
+        // 3. 사용자 화면에 보여줄 수 있도록 평문(암호화 전) 상태 그대로 컨트롤러에 리턴
+        return tempPassword;
+    }
+
+    /**
+     * 이메일 마스킹 처리 헬퍼 메서드 (테스트@gmail.com -> 테스**@gmail.com)
+     */
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return email;
+        
+        String[] parts = email.split("@");
+        String id = parts[0];
+        String domain = parts[1];
+
+        if (id.length() <= 2) {
+            return id.charAt(0) + "*" + "@" + domain;
+        }
+        
+        // 앞 2글자만 남기고 나머지는 *로 채움
+        String maskedId = id.substring(0, 2) + "*".repeat(id.length() - 2);
+        return maskedId + "@" + domain;
     }
 }

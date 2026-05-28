@@ -67,4 +67,9 @@ public class User {
     public void updateCurrentQuestionId(Long currentQuestionId) {
         this.currentQuestionId = currentQuestionId;
     }
+
+    // 비밀번호 업데이트
+    public void updatePassword(String password) {
+    this.password = password;
+    }
 }

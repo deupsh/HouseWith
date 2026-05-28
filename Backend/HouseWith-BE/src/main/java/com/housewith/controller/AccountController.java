@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.housewith.dto.account.EmailCheckRequest;
+import com.housewith.dto.account.FindEmailRequest;
+import com.housewith.dto.account.FindPasswordRequest;
 import com.housewith.dto.account.LoginRequest;
 import com.housewith.dto.account.LoginResponse;
 import com.housewith.dto.account.PasswordVerifyRequest;
@@ -35,9 +37,10 @@ import lombok.RequiredArgsConstructor;
 
 /** 작성자: 백승훈
  * 작성 시간: 2026-05-21
- * 마지막 수정자: 박성현
- * 마지막 수정 시간: 2026-05-12/1430i
+ * 마지막 수정자: 백승훈
+ * 마지막 수정 시간: 2026-05-28/1013i
  * 수정 내용: 가족 구성원 반환 시 PK만 반환 → SlotItem DTO 반환 (박성현 - 2026-05-12/1430i) 
+ * 아이디, 비밀번호 찾기 추가 (백승훈 - 2026-05-28/1013i)
  * 역할: 회원 가입 시 이메일 중복 확인용 DTO */
 
 @RestController
@@ -152,5 +155,21 @@ public class AccountController {
 
         accountService.withdrawUser(userId);
         return ResponseEntity.noContent().build(); // 204 바디 없음 성공
+    }
+
+    /**
+     * 아이디 찾기 API (POST + RequestBody 보안 적용)
+     */
+    @PostMapping("/auth/find-email") 
+    public ResponseEntity<List<String>> findEmail(@Valid @RequestBody FindEmailRequest request) { 
+        return ResponseEntity.ok(accountService.findEmail(request.getPhoneNumber()));
+    }
+
+    /**
+     * 비밀번호 확인 API (POST + RequestBody 보안 적용)
+     */
+    @PostMapping("/auth/find-password") 
+    public ResponseEntity<String> findPassword(@Valid @RequestBody FindPasswordRequest request) { 
+        return ResponseEntity.ok(accountService.findPassword(request.getEmail()));
     }
 }
