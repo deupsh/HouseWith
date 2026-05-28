@@ -1,63 +1,70 @@
 import React, { useState, useEffect } from 'react';
-import { iconMap } from '../constants/profileOptions';
+import { iconList, colorList } from '../constants/profileOptions'; // 🚨 iconList, colorList로 통일
 import axios from 'axios';
 import './css/FamilyNote.css';
-
-// 🚨 백엔드 연결 전 UI 테스트용 가짜 데이터 (로딩 시 에러 나면 보여줄 용도)
-const MOCK_NOTES = [
-  { id: 1, name: '나(엄마)', nickname: '엄마', avatar: 1, note: '냉장고에 과일 깎아뒀으니 다들 챙겨 먹어~ 🍎', noteUpdatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), lastLogin: new Date(Date.now() - 1000 * 60 * 5).toISOString(), isCurrentUser: true },
-  { id: 2, name: '아빠', nickname: '아빠', avatar: 2, note: '오늘 야근 확정...', noteUpdatedAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), lastLogin: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(), isCurrentUser: false },
-  { id: 3, name: '딸', nickname: '딸', avatar: 3, note: '이번 주말에 친구들이랑 놀이공원 갈래! 🎢', noteUpdatedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(), lastLogin: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), isCurrentUser: false },
-  { id: 4, name: '아들', nickname: '아들', avatar: 4, note: '아 피곤해... 오늘 학원 쉬고 싶다 😪', noteUpdatedAt: new Date(Date.now() - 1000 * 60 * 60 * 25).toISOString(), lastLogin: new Date(Date.now() - 1000 * 60 * 60 * 10).toISOString(), isCurrentUser: false },
-];
 
 const FamilyNote = () => {
   const now = new Date();
 
-  // API로 채울 예정
   const [familyNotes, setFamilyNotes] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [error, setError] = useState('');
 
+  // 공통 헤더 생성 함수 (토큰 + 슬롯 ID)
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('accessToken');
+    const profileId = localStorage.getItem('currentSlotId');
+    return { 
+      headers: { 
+        Authorization: `Bearer ${token}`, 
+        'X-Profile-Id': profileId // 🚨 필수 헤더 추가!
+      } 
+    };
+  };
+
   // 백엔드에서 전체 가족 노트 불러오기 (GET)
   const fetchFamilyNotes = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      
-      // 오늘의 가족 기분 조회
-      const response = await axios.get('/api/moods', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      // 현재 접속 중인 내 슬롯 ID를 가져오기 (Account.jsx에서 저장해둬야 함)
+      const response = await axios.get('/api/moods', getAuthHeaders());
       const currentSlotId = Number(localStorage.getItem('currentSlotId'));
 
-      // 백엔드 MoodResponse DTO에 맞춰 프론트엔드 변수명으로 매핑
       const mappedNotes = response.data.map(mood => ({
-        id: mood.slotId,
+        id: mood.slotId || mood.id, // DTO 변수명 유연성 확보
         name: mood.nickname,
         nickname: mood.nickname,
-        avatar: mood.profileEmoji, // 이모지 매핑
-        note: mood.content,        // 백엔드는 content, 프론트는 note
+        // 🚨 다른 페이지와 완벽히 통일된 아바타 데이터 매핑
+        profile_type: mood.customProfileImage ? 1 : 0, 
+        emoji_id: mood.profileEmoji || mood.emojiId || 0,
+        background_id: mood.profileBackground || mood.backgroundId || 0,
+        custom_profile_image: mood.customProfileImage,
+        note: mood.content || mood.moodText, // 기분이 없으면 null로 들어옴
         noteUpdatedAt: mood.createdAt,
         lastLogin: mood.lastAccessTime,
-        isCurrentUser: mood.slotId === currentSlotId // 내가 누군지 판별
+        isCurrentUser: (mood.slotId || mood.id) === currentSlotId 
       }));
 
-      setFamilyNotes(mappedNotes);
+      // 내 슬롯이 무조건 배열의 맨 첫 번째(왼쪽 끝)에 오도록 정렬
+      const sortedNotes = mappedNotes.sort((a, b) => {
+        if (a.isCurrentUser) return -1;
+        if (b.isCurrentUser) return 1;
+        return 0;
+      });
+
+      setFamilyNotes(sortedNotes);
     } catch (error) {
       console.error("가족 노트 조회 실패:", error);
-      setFamilyNotes(MOCK_NOTES);
+      // 에러가 났을 때만 빈 배열 처리 (더미 데이터 삭제)
+      setFamilyNotes([]);
     }
   };
 
-  // 컴포넌트 렌더링 시 최초 1회 노트 목록 가져오기
   useEffect(() => {
     fetchFamilyNotes();
   }, []);
 
   const isInactiveFor7Days = (lastLoginIso) => {
+    if (!lastLoginIso) return false;
     const loginDate = new Date(lastLoginIso);
     const diffTime = Math.abs(now - loginDate);
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
@@ -80,7 +87,7 @@ const FamilyNote = () => {
     }
   };
 
-  //백엔드에 내 노트 전송 및 저장 (PUT)
+  // 백엔드에 내 노트 전송 및 저장 (POST)
   const handleNoteSubmit = async (e) => {
     e.preventDefault();
     if (newNote.trim().length < 1 || newNote.trim().length > 20) {
@@ -89,25 +96,43 @@ const FamilyNote = () => {
     }
 
     try {
-      const token = localStorage.getItem('accessToken');
+      // 🚨 getAuthHeaders()를 사용하여 X-Profile-Id 헤더도 함께 전송
+      await axios.post('/api/moods', { content: newNote.trim() }, getAuthHeaders());
       
-      // 오늘의 기분 작성 (POST /api/moods)
-      // MoodCreateRequest DTO에 맞춰 'note'가 아닌 'content'로 전송
-      await axios.post('/api/moods', { content: newNote.trim() }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      fetchFamilyNotes();
+      fetchFamilyNotes(); // 저장 성공 시 화면 새로고침
       setIsModalOpen(false);
-
     } catch (error) {
       console.error("노트 저장 실패:", error);
-      setIsModalOpen(false);
+      // 🚨 에러 침묵 현상 방지
+      const errorMsg = error.response?.data?.message || "기분 등록에 실패했습니다.";
+      alert(errorMsg);
     }
   };
 
-  const getAvatarImage = (avatarId) => {
-    return iconMap[String(avatarId)] || iconMap['1'];
+  // 🚨 아바타 렌더링 통일 (사진 업로드, 배경색 모두 지원)
+  const renderAvatar = (member) => {
+    if (member.profile_type === 1 && member.custom_profile_image) {
+      return (
+        <img 
+          src={`http://localhost/uploads${member.custom_profile_image}`} 
+          alt={member.nickname} 
+          style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+        />
+      );
+    }
+    return (
+      <div style={{ 
+        width: '100%', height: '100%', borderRadius: '50%', 
+        backgroundColor: colorList[member.background_id] || '#e0e0e0',
+        overflow: 'hidden'
+      }}>
+        <img 
+          src={iconList[member.emoji_id] || iconList[0]} 
+          alt={member.nickname} 
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+        />
+      </div>
+    );
   };
 
   return (
@@ -127,11 +152,8 @@ const FamilyNote = () => {
           return (
             <div key={member.id} className={`note-card ${member.isCurrentUser ? 'current-user' : ''}`}>
               <div className="avatar-large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <img 
-                  src={getAvatarImage(member.avatar)} 
-                  alt={`${member.nickname} profile`} 
-                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
-                />
+                {/* 🚨 개선된 아바타 렌더링 적용 */}
+                {renderAvatar(member)}
               </div>
               <strong className="member-name">{member.name}</strong>
               

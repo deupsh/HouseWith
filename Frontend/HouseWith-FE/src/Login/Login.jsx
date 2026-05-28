@@ -33,7 +33,7 @@ const Login = ({ onLogin }) => {
     } catch (error) {
       // 로그인 실패 시 (비밀번호 틀림, 없는 아이디 등)
       console.error("로그인 실패:", error);
-      if (error.response && error.response.status === 401) {
+      if (error.response && (error.response.status === 401 || error.response.status === 404)) {
         setErrorMessage('이메일 또는 비밀번호가 일치하지 않습니다.');
       } else {
         setErrorMessage('서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');

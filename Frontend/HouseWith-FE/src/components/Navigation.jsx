@@ -90,17 +90,14 @@ const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
         <NavLink to="/todo" className="nav-item">
           <CheckSquare size={20} />
           <span>할 일</span>
-          <span className="notification-dot"></span>
         </NavLink>
         <NavLink to="/gallery" className="nav-item">
           <Image size={20} />
           <span>사진첩</span>
-          <span className="notification-dot"></span>
         </NavLink>
         <NavLink to="/qna" className="nav-item">
           <MessageCircle size={20} />
           <span>주간질문</span>
-          <span className="notification-dot"></span>
         </NavLink>
         <NavLink to="/analysis" className="nav-item">
           <BarChart2 size={20} />

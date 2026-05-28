@@ -67,9 +67,14 @@ const Analysis = () => {
       console.log("통계 데이터 도착 완료!", response.data);
       setData(response.data);
     } catch (error) {
-      console.error("통계 조회 실패 (서버가 아직 준비 안 됨):", error);
-      console.log("임시 더미 데이터를 화면에 표시합니다.");
-      setData(DEFAULT_EMPTY_DATA);
+      console.error("통계 조회 실패:", error);
+      // 🚨 무한 로딩처럼 보이지 않도록 텍스트만 덮어씌움!
+      setData({
+        ...DEFAULT_EMPTY_DATA,
+        weekLabel: "조회 실패",
+        participationComment: "통계 데이터를 불러오지 못했습니다. 잠시 후 새로고침 해주세요.",
+        recommendComment: "데이터를 불러오는 중 문제가 발생했습니다."
+      });
     } finally {
       setIsLoading(false);
     }
