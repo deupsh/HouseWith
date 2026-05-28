@@ -126,7 +126,7 @@ public class CalendarService {
         LocalDateTime startRange = targetMonth.atDay(1).atStartOfDay();
         LocalDateTime endRange = targetMonth.atEndOfMonth().atTime(23, 59, 59, 999999);
 
-        List<Calendar> calendars = calendarRepository.findByUser_IdAndStartTimeBetween(userId, startRange, endRange);
+        List<Calendar> calendars = calendarRepository.findOverlappingEvents(userId, startRange, endRange);
 
         // 명세서 6_3 <달력 기본 조회> 규격에 맞춰 매핑
         return calendars.stream()

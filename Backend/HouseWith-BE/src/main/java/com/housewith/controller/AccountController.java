@@ -1,5 +1,6 @@
 package com.housewith.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ import com.housewith.dto.account.SlotPinUpdateRequest;
 import com.housewith.dto.account.SlotUpdateRequest;
 import com.housewith.dto.account.UserCreateRequest;
 import com.housewith.service.AccountService;
+import com.housewith.service.FileService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +51,7 @@ import lombok.RequiredArgsConstructor;
 public class AccountController {
     
     private final AccountService accountService;
+    private final FileService fileService;
     
     // 이메일 중복 검사
     @PostMapping("/auth/check-email")
@@ -86,13 +89,13 @@ public class AccountController {
     @PostMapping(value = "/slots", consumes = "multipart/form-data")
     public ResponseEntity<SlotItem> createSlot(
             @AuthenticationPrincipal Long userId, 
-            @Valid @ModelAttribute SlotCreateRequest request) {
+            @Valid @ModelAttribute SlotCreateRequest request) throws IOException{
         
         // 이미지 파일 처리
         String uploadedImageUrl = null;
         MultipartFile file = request.getProfileImage();
         if (file != null && !file.isEmpty()) {
-            uploadedImageUrl = "https://housewith-s3-bucket.s3.amazonaws.com/profiles/" + file.getOriginalFilename();
+            uploadedImageUrl = fileService.saveFile(file, "profile"); 
         }
 
         SlotItem createSlot = accountService.createSlot(userId, request, uploadedImageUrl);

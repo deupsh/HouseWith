@@ -27,7 +27,7 @@ const getWeekLabel = (offset) => {
 };
 
 const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3, custom_profile_image: null } }) => {
-  const [isQuestionEnabled, setIsQuestionEnabled] = useState(true);
+  const [isQuestionEnabled, setIsQuestionEnabled] = useState(false);
   const [questionData, setQuestionData] = useState(null);
   const [myAnswerInput, setMyAnswerInput] = useState('');
   const [weekOffset, setWeekOffset] = useState(0);

@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.housewith.domain.schedule.Calendar;
 
@@ -16,5 +18,10 @@ import com.housewith.domain.schedule.Calendar;
 
 public interface CalendarRepository extends JpaRepository<Calendar, Long> {
     // 4_2 일정 조회: 달력에 표시하기 위해 특정 월/일 기간 안의 일정 가져오기
-    List<Calendar> findByUser_IdAndStartTimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
+	@Query("SELECT c FROM Calendar c WHERE c.user.id = :userId AND c.startTime <= :endRange AND c.endTime >= :startRange")
+    List<Calendar> findOverlappingEvents(
+            @Param("userId") Long userId, 
+            @Param("startRange") LocalDateTime startRange, 
+            @Param("endRange") LocalDateTime endRange
+    );
 }

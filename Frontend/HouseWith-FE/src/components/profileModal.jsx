@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Camera, Check, Lock, LogOut, Bell, Shield, Info } from 'lucide-react';
+import { X, Camera, Check, Lock, LogOut, Shield, Info } from 'lucide-react'; // 🚨 Bell 아이콘 삭제
 import { useNavigate } from 'react-router-dom';
 import ErrorMessage from './ErrorMessage';
 import CardModal from './CardModal';
@@ -16,7 +16,7 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
   const [emojiId, setEmojiId] = useState(0);
   const [backgroundId, setBackgroundId] = useState(0);
   const [customImage, setCustomImage] = useState(null);
-  const [isPushEnabled, setIsPushEnabled] = useState(true);
+  // 🚨 isPushEnabled 상태 삭제 완료
   const [accountEmail, setAccountEmail] = useState('');
   const [accountGroupName, setAccountGroupName] = useState('');
 
@@ -256,22 +256,7 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
                 </div>
               </section>
 
-              <section>
-                <h4 style={{ fontSize: '0.9rem', color: '#888', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Bell size={16} /> 앱 설정
-                </h4>
-                <div style={{ background: '#f8f9fa', borderRadius: '12px', padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#333', fontWeight: '500' }}>새로운 알림 받기</span>
-                  <label className="toggle-switch" style={{ margin: 0 }}>
-                    <input 
-                      type="checkbox" 
-                      checked={isPushEnabled} 
-                      onChange={() => setIsPushEnabled(!isPushEnabled)} 
-                    />
-                    <span className="slider round"></span>
-                  </label>
-                </div>
-              </section>
+              {/* 🚨 알림 관련 section 전체 삭제 완료 */}
 
               <section>
                 <h4 style={{ fontSize: '0.9rem', color: '#888', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
