@@ -61,28 +61,36 @@ public class CommunicationService {
         return familyMoodRepository.save(mood).getId();
     }
 
-    // 오늘의 가족 기분 조회
+ // 오늘의 가족 기분 조회
     public List<MoodResponse> getTodayFamilyMoods(Long userId) {
+        // 1. 무조건 가족 전체 프로필을 먼저 조회 (기준점)
+        List<Profile> familyProfiles = profileRepository.findByUser_Id(userId);
+
+        // 2. 최근 24시간 이내의 기분 데이터 조회
         LocalDateTime twentyFourHoursAgo = LocalDateTime.now().minusHours(24);
         List<FamilyMood> recentMoods = familyMoodRepository.findByUserIdAndCreatedAtAfter(userId, twentyFourHoursAgo);
 
-        // 가족 구성원 데이터를 단 한 번의 쿼리로 가져와 Map으로 매핑
-        List<Profile> familyProfiles = profileRepository.findByUser_Id(userId);
-        Map<Long, Profile> profileMap = familyProfiles.stream()
-                .collect(Collectors.toMap(Profile::getId, profile -> profile));
+        // 3. 프로필 ID를 키(Key)로, 가장 최신 기분 데이터를 값(Value)으로 매핑
+        Map<Long, FamilyMood> latestMoodByProfile = recentMoods.stream()
+                .collect(Collectors.toMap(
+                        FamilyMood::getProfileId,
+                        mood -> mood,
+                        (existing, replacement) -> existing.getCreatedAt().isAfter(replacement.getCreatedAt()) ? existing : replacement
+                ));
 
-        return recentMoods.stream()
-                .map(mood -> {
-                    Profile author = profileMap.get(mood.getProfileId());
+        // 4. 전체 가족을 기준으로 응답 조립 (기분을 안 썼으면 null)
+        return familyProfiles.stream()
+                .map(profile -> {
+                    FamilyMood mood = latestMoodByProfile.get(profile.getId());
                     return new MoodResponse(
-                            author.getId(),
-                            author.getNickname(),
-                            author.getEmojiId(),
-                            author.getBackgroundId(),
-                            author.getCustomProfileImage(),
-                            mood.getMoodText(),
-                            mood.getCreatedAt(),
-                            author.getLastAccessTime()
+                            profile.getId(),
+                            profile.getNickname(),
+                            String.valueOf(profile.getEmojiId()), // DTO의 profileEmoji 등에 매핑됨
+                            profile.getBackgroundId(),
+                            profile.getCustomProfileImage(),
+                            mood != null ? mood.getMoodText() : null, // 🚨 핵심: 없으면 null
+                            mood != null ? mood.getCreatedAt() : null,
+                            profile.getLastAccessTime()
                     );
                 })
                 .toList();
@@ -121,6 +129,11 @@ public class CommunicationService {
     public QuestionResponse getWeeklyQuestion(Long userId, Long myProfileId, int offset) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("가족 그룹을 찾을 수 없습니다."));
+        
+        // 기능 ON/OFF 우선 확인
+        if (!user.getIsReceivingQuestion()) {
+            throw new IllegalStateException("주간 질문 기능이 비활성화되어 있습니다."); // "과거"라는 단어가 안 들어간 에러 메시지
+        }
         
         // 1. 목표 질문 ID 계산 (현재 질문 ID + offset)
         Long currentQuestionId = user.getCurrentQuestionId();
@@ -164,12 +177,14 @@ public class CommunicationService {
                     .collect(Collectors.toMap(Profile::getId, p -> p));
 
             familyAnswers = allAnswers.stream()
-                    // 내 답변은 'myAnswerContent'로 따로 빼두었으니, 가족 리스트에서는 제외
+                    // 1. 내 답변 제외
                     .filter(answer -> !answer.getProfileId().equals(myProfileId)) 
+                    // 2. 핵심 방어막 추가: 프로필이 이미 삭제된 '유령 답변'은 화면에 띄우지 않고 무시함
+                    .filter(answer -> profileMap.containsKey(answer.getProfileId())) 
                     .map(answer -> {
                         Profile p = profileMap.get(answer.getProfileId());
                         return new FamilyAnswer(
-                                p.getNickname(),
+                                p.getNickname(), // 이제 p는 절대 null이 될 수 없음!
                                 p.getEmojiId(),
                                 p.getBackgroundId(),
                                 p.getCustomProfileImage(),
