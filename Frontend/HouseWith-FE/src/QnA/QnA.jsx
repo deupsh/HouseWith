@@ -44,7 +44,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
       if (error.response && error.response.status === 404) {
         const errorMessage = error.response.data; // 백엔드가 보낸 에러 메시지 추출
 
-        // 🚨 1. 과거 질문이 없는 경우 (스위치를 건드리지 않음!)
+        // 1. 과거 질문이 없는 경우 (스위치를 건드리지 않음)
         if (typeof errorMessage === 'string' && errorMessage.includes("과거")) {
           setQuestionData({
             isNotExist: true, // 새로운 플래그 추가
@@ -52,7 +52,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
             content: "해당 주차에는 생성된 주간 질문이 없습니다."
           });
         } 
-        // 🚨 2. 기능 자체가 꺼져 있는 경우
+        // 2. 기능 자체가 꺼져 있는 경우
         else {
           setIsQuestionEnabled(false);
           setQuestionData({
@@ -92,7 +92,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
       setMyAnswerInput('');
     } catch (error) {
       console.error("답변 제출 실패:", error);
-      // 🚨 조용히 넘어가지 않도록 알림 추가
+      // 알림 추가
       const errorMsg = error.response?.data?.message || "답변 제출에 실패했습니다.";
       alert(errorMsg);
     }
@@ -107,7 +107,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
     } catch (error) {
       console.error("설정 변경 실패:", error);
       setIsQuestionEnabled(!newState); // 롤백
-      // 🚨 스위치가 다시 돌아간 이유를 유저에게 설명
+      // 스위치가 다시 돌아간 이유를 유저에게 설명
       const errorMsg = error.response?.data?.message || "설정 변경 중 오류가 발생했습니다.";
       alert(errorMsg);
     }
@@ -128,7 +128,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
       </div>
     );
   } 
-  // 2. 🚨 기능은 켜져 있는데 과거 질문 자체가 없는 경우
+  // 2. 기능은 켜져 있는데 과거 질문 자체가 없는 경우
   else if (questionData.isNotExist) {
     contentBody = (
       <div className="disabled-view">
@@ -191,7 +191,7 @@ const QnA = ({ currentProfile = { profile_type: 0, emoji_id: 3, background_id: 3
               </div>
             </div>
 
-            {/* 🚨 2. 성현님 기획 반영: 가족 답변이 하나도 없을 때의 처리 */}
+            {/* 가족 답변이 하나도 없을 때의 처리 */}
             {questionData.answers.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '30px 0', color: '#888' }}>
                 <p>아직 답변을 남긴 가족이 없습니다.</p>

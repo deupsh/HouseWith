@@ -60,7 +60,7 @@ public class CommunicationController {
             QuestionResponse response = communicationService.getWeeklyQuestion(userId, profileId, offset);
             return ResponseEntity.ok(response);
         } catch (IllegalStateException e) {
-            // 🚨 500 에러 대신 404와 함께 "현재 활성화된 주간 질문이 없습니다." 메시지 반환
+            // 500 에러 대신 404와 함께 "현재 활성화된 주간 질문이 없습니다." 메시지 반환
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }

@@ -149,6 +149,8 @@
   background-color: #FFF3F0; 
   color: #D9534F; 
   border: 1px solid #F5D3CE;
+  word-break: keep-all; 
+  overflow-wrap: break-word;
 }
 .note-bubble.nudge-bubble::before {
   border-bottom-color: #F5D3CE;

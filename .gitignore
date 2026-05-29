@@ -51,3 +51,4 @@ src/main/resources/application-*.properties
 src/main/resources/application.yml
 src/main/resources/application-*.yml
 Backend/HouseWith-BE/src/main/resources/application.properties
+/uploads

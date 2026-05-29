@@ -3,7 +3,7 @@ import './Gallery.css';
 import axios from 'axios';
 import PhotoFormModal from './PhotoFormModal';
 
-// 🚨 백엔드 연결 전 UI 테스트용 가짜 데이터
+// 백엔드 연결 전 UI 테스트용 가짜 데이터
 const INITIAL_ALBUMS = ['기본 앨범', '가족 여행', '우리집 반려 동물'];
 const INITIAL_PHOTOS = [
   { id: 1, title: '맛있는 저녁 식사', date: '2026-05-18', album: '기본 앨범', url: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500', isThumbnail: false },
@@ -12,7 +12,6 @@ const INITIAL_PHOTOS = [
 ];
 
 const Gallery = () => {
-  // API로 채울 예정
   const [albums, setAlbums] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [currentAlbum, setCurrentAlbum] = useState('전체 보기'); 
@@ -25,7 +24,7 @@ const Gallery = () => {
   const [photoToDelete, setPhotoToDelete] = useState(null);
 
   // 전체 사진 목록 가져오기 (GET)
-  // 🚨 1. 앨범 목록만 따로 가져오는 독립적인 함수 신설
+  // 1. 앨범 목록만 따로 가져오는 독립적인 함수 신설
   const fetchAlbums = async () => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -41,13 +40,11 @@ const Gallery = () => {
     }
   };
 
-  // 🚨 2. 기존 fetchPhotos 내부의 앨범 탭 갱신 꼼수 삭제
+  // 2. 기존 fetchPhotos 내부의 앨범 탭 갱신 삭제
   const fetchPhotos = async () => {
     try {
       const token = localStorage.getItem('accessToken');
       
-      // 🚨 핵심 포인트: params 필터링을 아예 날려버립니다.
-      // 탭이 뭐든 간에 무조건 유저의 모든 사진을 다 가져와서 photos 배열에 꽉 채워둡니다.
       const response = await axios.get('/api/photos', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -68,7 +65,6 @@ const Gallery = () => {
     }
   };
 
-  // 2. 🚨 useEffect 종속성 배열 비우기 (currentAlbum 제거)
   useEffect(() => {
     fetchAlbums();
     fetchPhotos();
@@ -108,7 +104,7 @@ const Gallery = () => {
       const updatedPhotos = photos.filter(p => p.id !== photoToDelete);
       setPhotos(updatedPhotos);
       
-      // 🚨 3. 프론트엔드 가비지 컬렉션 동기화 및 탭 이동 UX
+      // 3. 프론트엔드 가비지 컬렉션 동기화 및 탭 이동 UX
       if (photoToDeleteInfo && photoToDeleteInfo.album !== '기본 앨범') {
         // 방금 지운 사진이 속했던 앨범에 남은 사진이 0장인지 확인
         const remainingInAlbum = updatedPhotos.filter(p => p.album === photoToDeleteInfo.album).length;
@@ -126,7 +122,7 @@ const Gallery = () => {
       
     } catch (error) {
       console.error("사진 삭제 실패:", error);
-      // 🚨 에러 팝업 추가
+      // 에러 팝업 추가
       const errorMsg = error.response?.data?.message || "사진을 삭제할 권한이 없거나 실패했습니다.";
       alert(errorMsg);
     } finally {
@@ -213,7 +209,7 @@ const Gallery = () => {
 
     } catch (error) {
       console.error("사진 저장 실패:", error);
-      // 🚨 하드코딩된 alert 대신 백엔드 에러 메시지 띄워주기
+      // 하드코딩된 alert 대신 백엔드 에러 메시지 띄워주기
       const errorMsg = error.response?.data?.message || "사진 저장 중 오류가 발생했습니다.";
       alert(errorMsg);
     }
@@ -242,7 +238,7 @@ const Gallery = () => {
       );
     } catch (error) {
       console.error("대표 사진 변경 실패:", error);
-      // 🚨 에러 팝업 추가
+      // 에러 팝업 추가
       const errorMsg = error.response?.data?.message || "대표 사진을 변경할 수 없습니다.";
       alert(errorMsg);
     }
@@ -355,13 +351,13 @@ const Gallery = () => {
                 type="button"
                 className={`btn ${selectedPhoto.isThumbnail ? 'btn-secondary' : 'btn-yellow'}`}
                 style={{ width: '100%', marginTop: '10px', boxShadow: 'none' }}
-                disabled={selectedPhoto.isThumbnail} // 🚨 이미 대표 사진이면 클릭(중복 요청) 방지
+                disabled={selectedPhoto.isThumbnail} // 이미 대표 사진이면 클릭(중복 요청) 방지
                 onClick={() => {
                   setAsThumbnail(selectedPhoto.id, selectedPhoto.album);
                   setSelectedPhoto({ ...selectedPhoto, isThumbnail: true }); // 무조건 true로 고정
                 }}
               >
-                {/* 🚨 해제라는 말을 없애고, 현재 상태를 직관적으로 알려줌 */}
+                {/* 해제라는 말을 없애고, 현재 상태를 직관적으로 알려줌 */}
                 {selectedPhoto.isThumbnail ? '⭐ 현재 앨범의 대표 사진입니다' : '⭐ 이 앨범의 대표 사진으로 설정'}
               </button>
             )}

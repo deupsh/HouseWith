@@ -182,10 +182,6 @@ public class PhotoService {
             throw new IllegalArgumentException("해당 사진에 대한 접근 권한이 없습니다.");
         }
 
-        // 파일 저장 처리는 컨트롤러 단에서 실행하여 새로운 파일명(newStoredFileName)을 넘겨받거나,
-        // 서비스 내부에서 처리할 경우 기존 파일을 지우는 유틸 로직을 이곳에 구성합니다.
-        // 예: if (newStoredFileName != null) { fileUtil.delete(photo.getFileName()); }
-        
         Album targetAlbum = getOrCreateAlbum(photo.getUser(), request.getAlbum());
 
         // 3. Setter를 쓰지 않고 도메인 엔티티 비즈니스 메서드 호출 (더티 체킹 발동)

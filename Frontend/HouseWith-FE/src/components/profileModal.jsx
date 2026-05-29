@@ -88,15 +88,26 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
       return; 
     }
 
-    onSubmit({
-      id: initialData?.profile_id, // 🚨 수정 시 슬롯 ID 전달
+    const submitData = {
+      id: initialData?.profile_id,
       nickname,
       pin_code: pinCode || null,
-      profile_type: activeTab,
-      emoji_id: activeTab === 0 ? emojiId : 0,
-      background_id: activeTab === 0 ? backgroundId : 0,
-      profileImage: fileInputRef.current ? fileInputRef.current.files[0] : null
-    });
+      // 숫자를 문자열로 확실하게 변환해서 전달
+      profile_type: String(activeTab), 
+      emoji_id: activeTab === 0 ? String(emojiId) : "0",
+      background_id: activeTab === 0 ? String(backgroundId) : "0",
+    };
+
+    // 2. 파일 처리 방어 로직 추가
+    if (activeTab === 1 && fileInputRef.current && fileInputRef.current.files[0]) {
+        // 사진 탭이고, 새 사진을 올렸을 때만 추가
+        submitData.profileImage = fileInputRef.current.files[0];
+    } else if (activeTab === 0) {
+        // 이모지 탭일 때는 사진 파일이 가지 않도록 방어
+        submitData.profileImage = null; 
+    }
+
+    onSubmit(submitData);
   };
 
   // 로그아웃 실행 함수
@@ -255,8 +266,6 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
                   </div>
                 </div>
               </section>
-
-              {/* 🚨 알림 관련 section 전체 삭제 완료 */}
 
               <section>
                 <h4 style={{ fontSize: '0.9rem', color: '#888', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>

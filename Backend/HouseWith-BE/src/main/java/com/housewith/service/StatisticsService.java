@@ -91,14 +91,14 @@ public class StatisticsService {
 
         // 1. 이번 주 발생한 전체 집안일 개수 (분모: 11, 12, 13, 14 = 4개)
         long totalUniqueChores = weeklyRecords.stream()
-                .map(ChoreRecord::getChoreId)
+                .map(record -> record.getChoreId() + "_" + record.getCompletedAt().toLocalDate().toString())
                 .distinct()
                 .count();
 
         // 2. 그 중 완료된 집안일 개수 (분자: 12, 13, 14 = 3개)
         int completedCount = (int) weeklyRecords.stream()
                 .filter(ChoreRecord::getIsCompleted)
-                .map(ChoreRecord::getChoreId)
+                .map(record -> record.getChoreId() + "_" + record.getCompletedAt().toLocalDate().toString())
                 .distinct()
                 .count();
         
@@ -209,10 +209,10 @@ private AiAnalysisResult analyzeWithGemini(List<MemberStat> memberStats, int tot
                 + "[데이터]\n" + promptData.toString();
 
         try {
-            // 🚨 엔드포인트 변경 (Groq API 주소)
+            // 엔드포인트 변경 (Groq API 주소)
         	String url = "https://api.groq.com/openai/v1/chat/completions";
 
-            // 🚨 OpenAI 호환 규격으로 Request Body 구조 변경
+            // OpenAI 호환 규격으로 Request Body 구조 변경
             Map<String, Object> requestBodyMap = Map.of(
         		"model", "llama-3.1-8b-instant", // 가장 빠르고 똑똑한 Llama 3 기본 모델
                 "messages", List.of(
@@ -224,17 +224,17 @@ private AiAnalysisResult analyzeWithGemini(List<MemberStat> memberStats, int tot
 
             String requestBody = objectMapper.writeValueAsString(requestBodyMap);
             
-            // 🚨 인증 방식 변경 (URL 파라미터가 아니라 Header의 Bearer Token 사용)
+            // 인증 방식 변경 (URL 파라미터가 아니라 Header의 Bearer Token 사용)
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", "Bearer " + geminiApiKey); // 키 주입
 
             HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-            // API 쏘기!
+            // API 쏘기
             String responseStr = restTemplate.postForObject(url, entity, String.class);
 
-            // 🚨 응답 파싱 구조 변경 (Groq/OpenAI 규격)
+            // 응답 파싱 구조 변경 (Groq/OpenAI 규격)
             JsonNode rootNode = objectMapper.readTree(responseStr);
             String textResult = rootNode.path("choices").get(0).path("message").path("content").asText();
             JsonNode aiNode = objectMapper.readTree(textResult);

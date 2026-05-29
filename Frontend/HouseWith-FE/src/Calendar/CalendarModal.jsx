@@ -13,7 +13,7 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
 
   const [internalMode, setInternalMode] = useState(mode);
 
-  // [추가] 시작 날짜를 변경할 때 실행할 함수
+  // 시작 날짜를 변경할 때 실행할 함수
   const handleStartDateChange = (e) => {
     const newStartDate = e.target.value;
     setStartDate(newStartDate);
@@ -24,7 +24,7 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
     }
   };
 
-  // [추가] 종료 날짜를 변경할 때 실행할 함수
+  // 종료 날짜를 변경할 때 실행할 함수
   const handleEndDateChange = (e) => {
     const newEndDate = e.target.value;
     setEndDate(newEndDate);
@@ -172,7 +172,7 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
                 <input 
                   type="datetime-local" 
                   value={startDate} 
-                  onChange={handleStartDateChange} // 🚨 변경됨
+                  onChange={handleStartDateChange}
                   required 
                 />
               </div>
@@ -182,7 +182,7 @@ const CalendarModal = ({ isOpen, onClose, mode, initialData, onSubmit, onDelete,
                 <input 
                   type="datetime-local" 
                   value={endDate} 
-                  onChange={handleEndDateChange} // 🚨 변경됨
+                  onChange={handleEndDateChange}
                   required 
                 />
               </div>

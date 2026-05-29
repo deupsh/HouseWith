@@ -115,7 +115,7 @@ const PhotoFormModal = ({ onClose, onSave, editingPhoto, albums, onDeleteClick }
               className="styled-date-input" 
               value={date} 
               onChange={(e) => setDate(e.target.value)} 
-              max={new Date().toISOString().split('T')[0]} /* 🚨 오늘 날짜까지만 선택 가능하도록 제한! */
+              max={new Date().toISOString().split('T')[0]} /* 오늘 날짜까지만 선택 가능하도록 제한 */
             />
           </div>
 

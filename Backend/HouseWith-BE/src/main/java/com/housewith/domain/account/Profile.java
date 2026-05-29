@@ -73,18 +73,17 @@ public class Profile {
     }
     
     // 프로필 정보 수정 비즈니스 로직 
-    public void modifyProfileDetails(String nickname, String emojiId, Integer backgroundId, String customProfileImage) {
+    public void modifyProfileDetails(String nickname, String emojiId, Integer backgroundId, String customProfileImage, Integer profileType) {
         if (nickname != null) this.nickname = nickname;
         if (emojiId != null) this.emojiId = emojiId;
         if (backgroundId != null) this.backgroundId = backgroundId;
         
-        // 이미지와 프로필 타입(profileType) 동기화 처리
-        if (customProfileImage != null && !customProfileImage.isEmpty()) {
-            this.customProfileImage = customProfileImage;
-            this.profileType = 1; // 사진 업로드 시 타입 1로 변경
-        } else if (emojiId != null || backgroundId != null) {
-            this.customProfileImage = null; // 이모지로 바꿨다면 기존 사진 경로 초기화
-            this.profileType = 0; // 이모지 타입 0으로 변경
+        // 프론트에서 넘어온 사진 경로 업데이트 (null이면 null로 덮어씀)
+        this.customProfileImage = customProfileImage;
+        
+        // 프론트에서 넘겨준 탭 상태(0 또는 1)를 그대로 DB에 반영
+        if (profileType != null) {
+            this.profileType = profileType; 
         }
     }
     

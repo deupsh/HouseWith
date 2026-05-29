@@ -18,6 +18,7 @@ const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
       submitData.append('nickname', formData.nickname);
       submitData.append('profileEmoji', formData.emoji_id);
       submitData.append('profileBackground', formData.background_id);
+      submitData.append('profileType', formData.profile_type);
       
       // 프로필 이미지가 선택되었을 때만 추가
       if (formData.profileImage) {

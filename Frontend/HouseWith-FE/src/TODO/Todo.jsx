@@ -71,7 +71,7 @@ const Todo = () => {
   const [todoToDelete, setTodoToDelete] = useState(null);
 
   const getAvatar = (member) => {
-    // 🚨 1. 데이터가 'profileType'으로 오든 'profile_type'으로 오든 둘 다 확인합니다.
+    // 1. 데이터가 'profileType'으로 오든 'profile_type'으로 오든 둘 다 확인
     const pType = member.profileType !== undefined ? member.profileType : member.profile_type;
     
     // 1. 프로필 사진이 있는 경우 (타입이 1)
@@ -86,7 +86,6 @@ const Todo = () => {
     }
 
     // 2. 사진 없는 경우
-    // 🚨 여기서도 혹시 모를 타입 불일치를 위해 Number()로 감싸주세요.
     const imageSrc = iconList[Number(member.profileEmoji)] || iconList[0]; 
     const bgColor = colorList[member.profileBackground] || '#e0e0e0'; 
 
@@ -111,7 +110,7 @@ const Todo = () => {
       alert("집안일 완료 체크는 오늘 날짜에만 가능합니다.");
       return;
     }
-    // 1. 화면에서 먼저 상태를 반전시켜 아래(혹은 위)로 보냅니다.
+    // 1. 화면에서 먼저 상태를 반전시켜 아래(혹은 위)로 보냄
     setTodos(prevTodos => 
       prevTodos.map(todo => 
         todo.choreId === id ? { ...todo, isDone: !todo.isDone } : todo
@@ -147,10 +146,10 @@ const Todo = () => {
       setTodoToDelete(null);
     } catch (error) {
       console.error("삭제 실패:", error);
-      // 🚨 유저에게 에러 상황 알림 (프론트 자체 메시지 활용)
+      // 유저에게 에러 상황 알림 (프론트 자체 메시지 활용)
       alert("집안일 삭제 권한이 없거나 서버 통신에 실패했습니다."); 
       
-      // 🚨 모달이 무한 로딩 상태처럼 보이지 않도록 닫아줌
+      // 모달이 무한 로딩 상태처럼 보이지 않도록 닫아줌
       setIsConfirmOpen(false);
       setTodoToDelete(null);
     }
@@ -322,7 +321,7 @@ const Todo = () => {
                 <input type="text" placeholder="예: 거실 청소기 돌리기 (1~20자)" maxLength={20} value={title} onChange={e => setTitle(e.target.value)} autoFocus />
               </div>
 
-              {/* 🌟 0~4 숫자 인덱스로 매핑된 반복 주기 */}
+              {/* 0~4 숫자 인덱스로 매핑된 반복 주기 */}
               <div className="form-field">
                 <label>반복 주기</label>
                 <div className="cycle-btn-group">
@@ -358,7 +357,7 @@ const Todo = () => {
                 </div>
               )}
 
-              {/* 🌟 이름 대신 slotId를 관리하도록 변경 */}
+              {/* 이름 대신 slotId를 관리하도록 변경 */}
               <div className="form-field">
                 <label>담당자 선택 (1명 이상)</label>
                 <div className="member-select-container">

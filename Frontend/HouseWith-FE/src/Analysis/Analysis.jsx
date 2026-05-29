@@ -68,7 +68,7 @@ const Analysis = () => {
       setData(response.data);
     } catch (error) {
       console.error("통계 조회 실패:", error);
-      // 🚨 무한 로딩처럼 보이지 않도록 텍스트만 덮어씌움!
+      // 무한 로딩처럼 보이지 않도록 텍스트만 덮어씌우기
       setData({
         ...DEFAULT_EMPTY_DATA,
         weekLabel: "조회 실패",
@@ -102,7 +102,7 @@ const Analysis = () => {
     return sliceData;
   });
 
-  // 🚨 2. 구성원별 원형 그래프 데이터 계산 (새로 추가됨!)
+  // 2. 구성원별 원형 그래프 데이터 계산
   let currentMemOffset = 0;
   // 전체 집계된 횟수 (총 집안일 수와 다를 수 있으므로 구성원 count의 합을 구함)
   const totalMemberCount = data.memberStats.reduce((sum, member) => sum + member.count, 0);
@@ -154,7 +154,7 @@ const Analysis = () => {
         </div>
       </div>
 
-      {/* 🚨 순서 변경 1: 요약 통계(총 집안일, 일평균, 완료율)가 가장 먼저 배치됨 */}
+      {/* 1: 요약 통계(총 집안일, 일평균, 완료율)가 가장 먼저 배치됨 */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon">📅</div>
@@ -173,7 +173,7 @@ const Analysis = () => {
         </div>
       </div>
 
-      {/* 🚨 순서 변경 2: 구성원별 참여도를 원형 그래프(Pie Chart)로 변경하여 배치 */}
+      {/* 2: 구성원별 참여도를 원형 그래프(Pie Chart)로 변경하여 배치 */}
       <div className="chart-card">
         <h3>구성원별 참여도</h3>
         {totalMemberCount === 0 ? (
@@ -211,13 +211,13 @@ const Analysis = () => {
                   className={`legend-item ${hoveredMember === slice.nickname ? 'hovered' : ''}`}
                   onMouseEnter={() => setHoveredMember(slice.nickname)}
                   onMouseLeave={() => setHoveredMember(null)}
-                  // 🚨 전체를 가로 정렬하되, 간격을 살짝 줍니다.
+                  // 전체를 가로 정렬하되, 간격을 살짝 줌
                   style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
                 >
                   {/* 왼쪽 색상 동그라미 */}
                   <span className="legend-color" style={{ backgroundColor: slice.color, width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0, marginRight: '10px' }}></span>
                   
-                  {/* 🚨 닉네임과 횟수를 세로(column)로 배치하는 영역 */}
+                  {/* 닉네임과 횟수를 세로(column)로 배치하는 영역 */}
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <span className="legend-name" style={{ fontWeight: 'bold', fontSize: '14px', color: '#333' }}>
                       {slice.nickname}
@@ -233,7 +233,7 @@ const Analysis = () => {
         )}
       </div>
 
-      {/* 🚨 순서 변경 3: 카테고리별 분포 그래프를 가장 아래로 이동 */}
+      {/* 3: 카테고리별 분포 그래프를 가장 아래로 이동 */}
       <div className="chart-card">
         <h3>카테고리별 분포</h3>
         {data.totalCount === 0 ? (

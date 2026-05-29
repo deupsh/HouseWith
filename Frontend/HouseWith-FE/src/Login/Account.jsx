@@ -91,7 +91,6 @@ const Account = ({ onSelect, showToast}) => {
       
       localStorage.setItem('currentSlotId', profile.profile_id);
       
-      // 🚨 이 부분이 핵심: 부모에게 선택된 프로필을 알려줘야 합니다!
       onSelect(profile); 
       
       navigate('/calendar');
@@ -115,7 +114,6 @@ const Account = ({ onSelect, showToast}) => {
         setPinInput('');
         setPinError('');
       } else {
-        // 🚨 profile 객체 자체를 넘겨줍니다
         performLogin(profile, ""); 
       }
     }
