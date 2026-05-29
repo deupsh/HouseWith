@@ -91,14 +91,14 @@ public class StatisticsService {
 
         // 1. 이번 주 발생한 전체 집안일 개수 (분모: 11, 12, 13, 14 = 4개)
         long totalUniqueChores = weeklyRecords.stream()
-                .map(ChoreRecord::getChoreId)
+                .map(record -> record.getChoreId() + "_" + record.getCompletedAt().toLocalDate().toString())
                 .distinct()
                 .count();
 
         // 2. 그 중 완료된 집안일 개수 (분자: 12, 13, 14 = 3개)
         int completedCount = (int) weeklyRecords.stream()
                 .filter(ChoreRecord::getIsCompleted)
-                .map(ChoreRecord::getChoreId)
+                .map(record -> record.getChoreId() + "_" + record.getCompletedAt().toLocalDate().toString())
                 .distinct()
                 .count();
         
