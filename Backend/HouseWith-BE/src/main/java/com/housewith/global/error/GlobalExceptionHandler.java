@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                e.getMessage() // "가족 슬롯은 최대 10개까지만 생성할 수 있습니다." 메시지 전달
+                e.getMessage() // ex) "가족 슬롯은 최대 10개까지만 생성할 수 있습니다." 메시지 전달
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }

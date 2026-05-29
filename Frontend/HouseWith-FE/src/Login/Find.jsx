@@ -40,7 +40,7 @@ const Find = () => {
     } catch (error) {
       console.error("아이디 찾기 실패:", error);
       
-      // ✨ 스프링 에러 객체가 들어올 경우 내부 message 텍스트만 추출하여 크래시 방지
+      // 스프링 에러 객체가 들어올 경우 내부 message 텍스트만 추출하여 크래시 방지
       const serverMessage = error.response?.data?.message || error.response?.data;
       const errorText = typeof serverMessage === 'string' ? serverMessage : '계정을 찾을 수 없거나 서버 오류가 발생했습니다.';
       
@@ -70,7 +70,7 @@ const Find = () => {
     } catch (error) {
       console.error("비밀번호 찾기 실패:", error);
       
-      // ✨ 스프링 에러 객체가 들어올 경우 내부 message 텍스트만 추출하여 크래시 방지
+      // 스프링 에러 객체가 들어올 경우 내부 message 텍스트만 추출하여 크래시 방지
       const serverMessage = error.response?.data?.message || error.response?.data;
       const errorText = typeof serverMessage === 'string' ? serverMessage : '존재하지 않는 이메일이거나 서버 오류가 발생했습니다.';
       

@@ -133,7 +133,7 @@ const Calendar = ({ showToast }) => {
 
     setSelectedDateEvents(dayEvents);
     setSelectedDateStr(clickedDateStr);
-    setIsListModalOpen(true); // 🚨 무조건 리스트 모달 오픈
+    setIsListModalOpen(true); // 리스트 모달 오픈
   };
 
   // 2. 날짜 클릭 (배경)
@@ -266,13 +266,13 @@ const Calendar = ({ showToast }) => {
                           fontSize: '0.7rem', 
                           textAlign: 'center', 
                           borderRadius: '4px',
-                          padding: '0px 2px',      /* 🚨 padding을 0에 가깝게 줄임 */
-                          lineHeight: '1',         /* 🚨 줄 높이를 1로 고정하여 불필요한 위아래 여백 제거 */
+                          padding: '0px 2px',      /* padding을 0에 가깝게 줄임 */
+                          lineHeight: '1',         /* 줄 높이를 1로 고정하여 불필요한 위아래 여백 제거 */
                           cursor: 'pointer',
-                          display: 'flex',         /* 🚨 flex를 사용하여 */
-                          alignItems: 'center',    /* 🚨 중앙 정렬 강제 */
+                          display: 'flex',         /* flex를 사용하여 */
+                          alignItems: 'center',    /* 중앙 정렬 강제 */
                           justifyContent: 'center',
-                          height: '14px'           /* 🚨 높이를 명시적으로 줄임 */
+                          height: '14px'           /* 높이를 명시적으로 줄임 */
                         }}
                         onClick={(e) => {
                           e.stopPropagation();

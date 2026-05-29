@@ -44,7 +44,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Long userId = jwtTokenProvider.getUserId(token);
             
             // 추출한 PK를 바탕으로 스프링 시큐리티의 공식 인증 객체(Authentication) 생성
-            // 세 번째 파라미터는 권한(Role) 목록인데, 현재 서비스는 단일 유저 권한이므로 빈 리스트로 둡니다.
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userId, null, List.of());
             

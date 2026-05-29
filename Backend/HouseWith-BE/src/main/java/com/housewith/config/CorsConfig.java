@@ -7,7 +7,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 /** 작성자: 박성현
  * 작성 시간: 2026-05-19/0915i
  * 마지막 수정자: 박성현
- * 마지막 수정 시간:2026-05-19/0915i
+ * 마지막 수정 시간:2026-05-29/1119i
+ * 수정 내용: 허용 URL 추가 (에뮬레이터 및 로컬)
  * 역할: React 개발 서버(localhost:5173)와 CORS 정책 설정 */
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {

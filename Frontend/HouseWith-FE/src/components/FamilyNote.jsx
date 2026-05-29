@@ -33,7 +33,7 @@ const FamilyNote = () => {
         id: mood.slotId || mood.id, // DTO 변수명 유연성 확보
         name: mood.nickname,
         nickname: mood.nickname,
-        // 🚨 다른 페이지와 완벽히 통일된 아바타 데이터 매핑
+        // 다른 페이지와 완벽히 통일된 아바타 데이터 매핑
         profile_type: mood.customProfileImage ? 1 : 0, 
         emoji_id: mood.profileEmoji || mood.emojiId || 0,
         background_id: mood.profileBackground || mood.backgroundId || 0,
@@ -96,20 +96,20 @@ const FamilyNote = () => {
     }
 
     try {
-      // 🚨 getAuthHeaders()를 사용하여 X-Profile-Id 헤더도 함께 전송
+      // getAuthHeaders()를 사용하여 X-Profile-Id 헤더도 함께 전송
       await axios.post('/api/moods', { content: newNote.trim() }, getAuthHeaders());
       
       fetchFamilyNotes(); // 저장 성공 시 화면 새로고침
       setIsModalOpen(false);
     } catch (error) {
       console.error("노트 저장 실패:", error);
-      // 🚨 에러 침묵 현상 방지
+      // 에러 침묵 현상 방지
       const errorMsg = error.response?.data?.message || "기분 등록에 실패했습니다.";
       alert(errorMsg);
     }
   };
 
-  // 🚨 아바타 렌더링 통일 (사진 업로드, 배경색 모두 지원)
+  // 아바타 렌더링 통일 (사진 업로드, 배경색 모두 지원)
   const renderAvatar = (member) => {
     if (member.profile_type === 1 && member.custom_profile_image) {
       return (
@@ -152,7 +152,7 @@ const FamilyNote = () => {
           return (
             <div key={member.id} className={`note-card ${member.isCurrentUser ? 'current-user' : ''}`}>
               <div className="avatar-large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                {/* 🚨 개선된 아바타 렌더링 적용 */}
+                {/* 개선된 아바타 렌더링 적용 */}
                 {renderAvatar(member)}
               </div>
               <strong className="member-name">{member.name}</strong>

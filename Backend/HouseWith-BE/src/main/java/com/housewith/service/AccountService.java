@@ -190,34 +190,41 @@ public class AccountService {
         );
     }
 
-    // 가족 프로필 정보 수정
+ // 가족 프로필 정보 수정
     @Transactional
     public void updateSlot(Long slotId, Long userId, SlotUpdateRequest request) {
-    	Profile profile = profileRepository.findById(slotId)
+        Profile profile = profileRepository.findById(slotId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로필 슬롯입니다."));
-
-     // 권한 방어벽 추가: 내 가족 슬롯이 맞는지 검증
+        
         if (!profile.getUser().getId().equals(userId)) {
             throw new IllegalArgumentException("수정 권한이 없습니다.");
         }
         
-        String savedFileUrl = null;
+        // 🚨 1. 초기값을 null이 아니라 '기존에 저장되어 있던 사진 경로'로 세팅!
+        String targetImageUrl = profile.getCustomProfileImage(); 
         
-     // 파일이 있을 때만 새 경로로 덮어씁니다.
+        // 2. 프론트에서 넘어온 새 파일이 있다면, 새 파일 저장 후 경로를 덮어씀
         if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
             try {
-                savedFileUrl = fileService.saveFile(request.getProfileImage(), "profile");
+                targetImageUrl = fileService.saveFile(request.getProfileImage(), "profile");
             } catch (IOException e) {
                 throw new RuntimeException("파일 저장 실패", e);
             }
         }
         
-        // 엔티티 정보 갱신 (실제 Profile 엔티티의 변경 메서드 호출)
+        // 🚨 프론트에서 사진탭(1)에서 이모지탭(0)으로 탭을 바꿨을 경우에만 사진을 강제로 날려줌 (선택 사항)
+        // 만약 유저가 고의로 사진을 지우고 싶어 할 경우를 대비한 로직입니다.
+        if (Integer.valueOf(0).equals(request.getProfileType()) || "0".equals(String.valueOf(request.getProfileType()))) {
+            targetImageUrl = null;
+        }
+        
+        // 3. 갱신 (새 사진이 없었으면 기존 경로가 그대로, 있으면 새 경로가 들어감)
         profile.modifyProfileDetails(
                 request.getNickname(),
                 request.getProfileEmoji(),
                 request.getProfileBackground(),
-                savedFileUrl
+                targetImageUrl,
+                request.getProfileType()
         );
     }
 

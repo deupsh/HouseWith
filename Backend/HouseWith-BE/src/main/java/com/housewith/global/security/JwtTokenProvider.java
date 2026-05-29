@@ -43,21 +43,21 @@ public class JwtTokenProvider {
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
         return Jwts.builder()
-                .subject(String.valueOf(userId))       // 기존 setSubject() -> subject() 변경
-                .claim("groupName", groupName)         // 비즈니스용 커스텀 데이터 클레임 주입
-                .issuedAt(now)                         // 기존 setIssuedAt() -> issuedAt() 변경
-                .expiration(validity)                   // 기존 setExpiration() -> expiration() 변경
-                .signWith(key)                         // 알고리즘 명시 없이 Key 객체만 넣으면 최적의 서명 자동 지정
+                .subject(String.valueOf(userId))
+                .claim("groupName", groupName)
+                .issuedAt(now)                         
+                .expiration(validity)                  
+                .signWith(key)                         
                 .compact();
     }
 
     // 토큰의 서명을 까서 유저 식별자(userId)를 꺼내는 로직 (0.12.5 Parser 문법 적용)
     public Long getUserId(String token) {
         String subject = Jwts.parser()
-                .verifyWith(key)                       // 기존 setSigningKey() -> verifyWith() 변경
+                .verifyWith(key)                     
                 .build()
-                .parseSignedClaims(token)              // 기존 parseClaimsJws() -> parseSignedClaims() 변경
-                .getPayload()                          // 기존 getBody() -> getPayload() 변경
+                .parseSignedClaims(token)     
+                .getPayload()                         
                 .getSubject();
         
         return Long.parseLong(subject);

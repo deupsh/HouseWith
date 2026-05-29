@@ -26,13 +26,13 @@ public class StatisticsController {
 
     private final StatisticsService statisticsService;
 
-    // 9_1 주간 통계 조회 (명세서 기준 9_1)
+    // 9_1 주간 통계 조회
     @GetMapping
     public ResponseEntity<WeeklyStatisticsResponse> getWeeklyStatistics(
             @AuthenticationPrincipal Long userId,
             @RequestParam(name = "week", required = false) String week) {
         
-        // week 파라미터가 없으면 내부적으로 현재 주차를 기준으로 계산합니다.
+        // week 파라미터가 없으면 내부적으로 현재 주차를 기준으로 계산
         WeeklyStatisticsResponse response = statisticsService.getWeeklyStatistics(userId, week);
         return ResponseEntity.ok(response);
     }

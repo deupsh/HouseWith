@@ -31,4 +31,5 @@ public class SlotUpdateRequest {
 
     // 프로필 사진 선택 시 사용, 아이콘+색상 조합 선택 시 NULL
     private MultipartFile profileImage; // 수정할 프로필 사진 파일
+    private Integer profileType;
 }

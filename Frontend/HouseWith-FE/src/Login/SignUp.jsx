@@ -119,13 +119,13 @@ const SignUp = ({ showToast, setIsLoggedIn }) => {
         setErrors(prev => ({ ...prev, email: '이미 가입된 이메일 주소입니다.' }));
         
       } else if (error.response && error.response.status === 400) {
-        // 🚨 400: 유효성 검사 실패 (이메일 길이 초과, 형식 불일치 등)
+        // 400: 유효성 검사 실패 (이메일 길이 초과, 형식 불일치 등)
         // 백엔드 GlobalExceptionHandler가 만들어준 메시지를 꺼내서 보여줌
         const errorMsg = error.response.data?.message || '입력값이 올바르지 않습니다.';
         alert(errorMsg); 
         
       } else {
-        // 🚨 기존에 있던 강제 로그인(setIsLoggedIn) 및 강제 이동(navigate) 코드 완전 삭제!!
+        // 기존에 있던 강제 로그인(setIsLoggedIn) 및 강제 이동(navigate) 코드 삭제
         const errorMsg = error.response?.data?.message || '회원가입 처리 중 오류가 발생했습니다.';
         alert(errorMsg);
       }

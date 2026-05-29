@@ -301,7 +301,7 @@ public class ChoreService {
         // 5. 집안일(Chore) 기준으로 먼저 완료 여부 판단 후, 미완료 시 담당자들에게 0점 부여
         for (Chore chore : yesterdayChores) {
             
-            // 🚨 수정 핵심: "누가 했든 상관없이, 어제 이 집안일에 대한 완료 기록(isCompleted = 1)이 1개라도 있는가?"
+            // 핵심: "누가 했든 상관없이, 어제 이 집안일에 대한 완료 기록(isCompleted = 1)이 1개라도 있는가?"
             boolean isChoreCompleted = yesterdayRecords.stream()
                     .anyMatch(r -> r.getChoreId().equals(chore.getId()) && r.getIsCompleted());
 
