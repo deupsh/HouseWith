@@ -65,7 +65,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //webView.loadUrl("http://10.0.2.2:5173");
-        webView.loadUrl("http://113.198.238.96:5173");
+        //webView.loadUrl("http://113.198.238.96:5173");
+        webView.loadUrl("https://housewith.vercel.app");
     }
 
     // 🚨 3. 갤러리에서 사진을 고르고 돌아왔을 때, 웹뷰로 사진 데이터를 넘겨주는 로직
