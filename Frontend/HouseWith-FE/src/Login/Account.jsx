@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Lock, X, Settings, KeyRound, UserMinus, AlertTriangle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Account.css';
-import ProfileModal from '../components/ProfileModal';
+import ProfileModal from '../components/profileModal';
 import { iconList, colorList } from '../constants/profileOptions';
 import ErrorMessage from '../components/ErrorMessage';
 import CardModal from '../components/CardModal';
