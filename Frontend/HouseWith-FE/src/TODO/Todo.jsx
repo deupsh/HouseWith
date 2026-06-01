@@ -78,7 +78,7 @@ const Todo = () => {
     if (pType === 1) {
       return (
         <img 
-          src={`http://${window.location.hostname}/uploads${member.customProfileImage}`} 
+          src={member.customProfileImage}
           alt={member.nickname} 
           style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} 
         />

@@ -28,7 +28,8 @@ import lombok.RequiredArgsConstructor;
 /** 작성자: 박성현
  * 작성 시간: 2026-05-21/1220i
  * 마지막 수정자: 박성현
- * 마지막 수정 시간: 2026-05-21/1220i
+ * 마지막 수정 시간: 2026-06-01/1033i
+ * 수정 내용: AWS S3 클라우드 서비스 추가
  * 역할: 사진첩 비즈니스 로직 담당 Service */
 
 @Service
@@ -40,6 +41,7 @@ public class PhotoService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final AlbumRepository albumRepository;
+    private final FileService fileService;
 
     // 7_1 사진 업로드
     @Transactional
@@ -158,16 +160,7 @@ public class PhotoService {
         if (remainingPhotos == 0 && !targetAlbum.getName().equals("기본 앨범")) {
             albumRepository.delete(targetAlbum);
         }
-        try {
-            Path filePath = Paths.get("C:/HouseWith/uploads/photo", fileName); 
-            
-            // 파일이 존재하면 깔끔하게 삭제
-            Files.deleteIfExists(filePath); 
-        } catch (IOException e) {
-            // DB 롤백 방지용: 파일 삭제에 실패하더라도 DB 레코드 삭제는 유지되도록 로그만 남깁니다.
-            System.err.println("물리적 파일 삭제 실패: " + fileName);
-            e.printStackTrace();
-        }
+        fileService.deleteFile(fileName);
     }
 
     // 7_6 사진 정보 및 파일 수정 로직

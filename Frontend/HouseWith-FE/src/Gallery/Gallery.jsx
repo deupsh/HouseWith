@@ -54,7 +54,7 @@ const Gallery = () => {
         title: p.title,
         date: p.date,
         album: p.album,
-        url: `http://${window.location.hostname}/uploads/photo/${p.fileName}`, 
+        url: p.fileName, 
         isThumbnail: p.thumbnail
       }));
       
@@ -285,7 +285,7 @@ const Gallery = () => {
         </button>
         {albums.map((alb) => (
           <button key={alb} className={`album-tab ${currentAlbum === alb ? 'active' : ''}`} onClick={() => setCurrentAlbum(alb)}>
-            <div className="tab-cover-mini" style={{ backgroundImage: `url(${getAlbumCover(alb)})` }} />
+            <div className="tab-cover-mini" style={{ backgroundImage: `url("${getAlbumCover(alb)}")` }} />
             {alb}
           </button>
         ))}
@@ -295,7 +295,7 @@ const Gallery = () => {
         {filteredPhotos.length === 0 && <p className="empty-gallery-msg">이 앨범에 등록된 사진이 없습니다.</p>}
         {filteredPhotos.map((photo) => (
           <div key={photo.id} className="photo-card" onClick={() => setSelectedPhoto(photo)}>
-            <div className="photo-img-wrapper" style={{ backgroundImage: `url(${photo.url})` }}>
+            <div className="photo-img-wrapper" style={{ backgroundImage: `url("${photo.url}")` }}>
               {photo.isThumbnail && <span className="cover-badge">★ 대표</span>}
             </div>
             <div className="photo-card-info">

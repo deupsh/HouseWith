@@ -72,7 +72,7 @@ const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
           >
             {currentProfile.profile_type === 1 ? (
               <img 
-                src={`http://${window.location.hostname}/uploads${currentProfile.custom_profile_image}`} 
+                src={currentProfile.custom_profile_image}
                 alt="profile" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
               />

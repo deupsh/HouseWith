@@ -59,19 +59,9 @@ public class PhotoController {
             throw new IllegalArgumentException("업로드할 파일이 존재하지 않습니다.");
         }
         
-        // 저장 경로 설정
-        String uploadDir = "C:/HouseWith/uploads/photo/";
-        File dir = new File(uploadDir);
-        if (!dir.exists()) {
-            dir.mkdirs(); 
-        }
-
-    	String savedFileUrl = fileService.saveFile(file, "photo");
+        String savedFileUrl = fileService.saveFile(file, "photo");
         
-        // 경로에서 순수 파일명만 추출하여 DB에 넘기거나, URL 통째로 넘기는 건 기획에 맞춰 조율
-        String savedFileName = savedFileUrl.substring(savedFileUrl.lastIndexOf("/") + 1);
-
-        Long photoId = photoService.uploadPhoto(userId, profileId, request, savedFileName);
+        Long photoId = photoService.uploadPhoto(userId, profileId, request, savedFileUrl);
         return ResponseEntity.status(HttpStatus.CREATED).body(photoId);
     }
 
