@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import axios from 'axios';
 import { Calendar, CheckSquare, Image, MessageCircle, BarChart2 } from 'lucide-react';
-import ProfileModal from './ProfileModal';
+import ProfileModal from './profileModal';
 import { iconList, colorList } from '../constants/profileOptions';
 import './css/Navigation.css';
 
