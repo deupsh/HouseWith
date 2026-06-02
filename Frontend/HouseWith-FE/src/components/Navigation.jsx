@@ -36,8 +36,25 @@ const Navigation = ({ currentProfile, setCurrentProfile, showToast }) => {
       setIsEditOpen(false);
       if (showToast) showToast("프로필 수정 완료!");
       
-      // 저장 성공 후 화면을 새로고침하여 바뀐 프로필 사진을 DB에서 다시 받아옵니다.
-      window.location.reload();
+      const response = await axios.get('/api/slots', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // 내가 방금 수정한 프로필 데이터만 찾기
+      const updatedSlot = response.data.find(slot => slot.slotId === currentProfile.profile_id);
+      
+      // 찾았으면 그 데이터를 바탕으로 현재 프로필(currentProfile) 상태를 교체
+      if (updatedSlot && setCurrentProfile) {
+        setCurrentProfile({
+          profile_id: updatedSlot.slotId,
+          nickname: updatedSlot.nickname,
+          profile_type: updatedSlot.customProfileImage ? 1 : 0,
+          emoji_id: updatedSlot.profileEmoji,
+          background_id: updatedSlot.profileBackground,
+          custom_profile_image: updatedSlot.customProfileImage,
+          has_pin: updatedSlot.pinCode !== null && updatedSlot.pinCode !== ""
+        });
+      }
 
     } catch (error) {
       console.error("프로필 수정 실패:", error);
