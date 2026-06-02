@@ -26,7 +26,7 @@ const Calendar = ({ currentProfile, showToast }) => {
   const [selectedDateStr, setSelectedDateStr] = useState('');
 
   // 현재 보고 있는 연도와 월을 상태(State)로 관리
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
   const daysInMonth = new Date(year, month, 0).getDate();
