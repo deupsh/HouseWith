@@ -73,8 +73,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Vercel 프론트엔드 주소만 정확히 허용
-        configuration.setAllowedOrigins(List.of("https://housewith.vercel.app")); 
+        // 프론트엔드 주소만 허용
+        configuration.setAllowedOrigins(List.of(
+                "https://housewith.vercel.app", 
+                "https://housewith.kro.kr"
+            )); 
         // 사용할 수 있는 HTTP 메서드 전부 허용
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         // 모든 헤더 허용
