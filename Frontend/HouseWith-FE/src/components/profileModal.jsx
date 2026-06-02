@@ -290,8 +290,8 @@ const ProfileModal = ({ isOpen, onClose, mode = 'create', initialData, onSubmit 
 
         {mainTab === 'edit' && (
           <div className="modal-footer" style={{ padding: '20px', borderTop: '1px solid #eee' }}>
-            <button className="btn-cancel" onClick={onClose} style={{ flex: 1 }}>취소</button>
-            <button className="btn-add" onClick={handleSubmit} style={{ flex: 1 }}>
+            <button type="button" className="btn-cancel" onClick={onClose} style={{ flex: 1 }}>취소</button>
+            <button type="button" className="btn-add" onClick={handleSubmit} style={{ flex: 1 }}>
               {mode === 'create' ? '추가하기' : '저장하기'}
             </button>
           </div>
