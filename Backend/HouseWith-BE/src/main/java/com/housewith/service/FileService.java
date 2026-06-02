@@ -30,6 +30,9 @@ public class FileService {
 
     @Value("${cloud.aws.s3.bucket}") // application.properties에 적은 버킷 이름 가져오기
     private String bucket;
+    
+    @Value("${cloud.aws.cloudfront.url}")
+    private String cloudFrontUrl;
 
     public String saveFile(MultipartFile file, String subDir) throws IOException {
         // 1. 파일명 중복 방지 (UUID 사용)
@@ -53,7 +56,7 @@ public class FileService {
 
         // 5. 가장 중요한 부분: 업로드된 사진의 "완벽한 인터넷 주소(URL)"를 반환합니다.
         // 예: https://housewith-bucket.s3.ap-northeast-2.amazonaws.com/photo/uuid_풍경사진.jpg
-        return amazonS3Client.getUrl(bucket, s3FileName).toString();
+        return cloudFrontUrl + "/" + s3FileName;
     }
     
     // AWS S3 파일 물리적 삭제
@@ -61,7 +64,7 @@ public class FileService {
         try {
             // DB에 저장된 fileUrl 예시: https://housewith-bucket.s3.ap-northeast-2.amazonaws.com/photo/uuid_사진.jpg
             // S3에서 파일을 지우려면 도메인 주소는 빼고 "photo/uuid_사진.jpg" 라는 '객체 키(Key)'만 알아야 함
-            String splitStr = ".amazonaws.com/";
+        	String splitStr = ".cloudfront.net/";
             
             if (fileUrl != null && fileUrl.contains(splitStr)) {
                 // ".amazonaws.com/" 문자열 이후의 값만 잘라서 추출
