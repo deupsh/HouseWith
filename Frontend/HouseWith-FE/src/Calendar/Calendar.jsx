@@ -12,7 +12,7 @@ const MOCK_EVENTS = [
   { id: 3, title: '가족 외식', startDate: '2026-05-20T19:00', endDate: '2026-05-20T21:00', memo: '예약 확인하기', writer: '엄마', participants: ['엄마', '아빠', '딸', '아들'], color: '#FDECE8' }
 ];
 
-const Calendar = ({ showToast }) => {
+const Calendar = ({ currentProfile, showToast }) => {
   const [familyMembers, setFamilyMembers] = useState([]);
   const [currentUserSlotId, setCurrentUserSlotId] = useState(null);
 
