@@ -209,7 +209,7 @@ const Calendar = ({ showToast }) => {
 
   return (
     <div className="calendar-page">
-      <FamilyNote />
+      <FamilyNote currentProfile={currentProfile} />
 
       <section className="calendar-section">
         <div className="calendar-header">

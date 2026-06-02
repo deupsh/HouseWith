@@ -3,7 +3,7 @@ import { iconList, colorList } from '../constants/profileOptions'; // 🚨 iconL
 import axios from 'axios';
 import './css/FamilyNote.css';
 
-const FamilyNote = () => {
+const FamilyNote = ({ currentProfile }) => {
   const now = new Date();
 
   const [familyNotes, setFamilyNotes] = useState([]);
@@ -61,7 +61,7 @@ const FamilyNote = () => {
 
   useEffect(() => {
     fetchFamilyNotes();
-  }, []);
+  }, [currentProfile]);
 
   const isInactiveFor7Days = (lastLoginIso) => {
     if (!lastLoginIso) return false;

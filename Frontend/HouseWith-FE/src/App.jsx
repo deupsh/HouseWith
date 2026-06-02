@@ -84,7 +84,7 @@ function App() {
 
               {/* 네비게이션 O */}
               <Route element={<Layout currentProfile={currentProfile} setCurrentProfile={setCurrentProfile} showToast={showToast} />}>
-              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/calendar" element={<Calendar currentProfile={currentProfile} showToast={showToast} />} />
               <Route path="/todo" element={<Todo />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/qna" element={<QnA currentProfile={currentProfile} />} />
