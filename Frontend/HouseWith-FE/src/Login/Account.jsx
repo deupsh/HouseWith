@@ -205,6 +205,17 @@ const Account = ({ onSelect, showToast}) => {
   const handleRemovePin = async () => {
     try {
       const token = localStorage.getItem('accessToken');
+
+      const requestBody = {
+        password: familyPassword,
+        accountPassword: familyPassword,
+        newPinCode: ""
+      };
+
+      await axios.patch(`/api/slots/${resetTargetProfile.profile_id}/pin`, requestBody, { 
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
       if (showToast) showToast(`'${resetTargetProfile.nickname}'님의 프로필 잠금이 해제되었습니다.`);
       setResetStep(0);
       setResetTargetProfile(null);
